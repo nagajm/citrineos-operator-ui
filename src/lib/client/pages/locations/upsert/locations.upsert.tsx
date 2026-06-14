@@ -459,7 +459,7 @@ export const LocationsUpsert = ({
                     label="City"
                     name={LocationProps.city}
                   >
-                    <Input placeholder="e.g. Berlin" />
+                    <Input placeholder="e.g. Chennai, Coimbatore, Madurai" />
                   </FormField>
 
                   {/* State / Province / Region — free text, works globally */}
@@ -468,7 +468,7 @@ export const LocationsUpsert = ({
                     label="State / Province / Region"
                     name={LocationProps.state}
                   >
-                    <Input placeholder="e.g. California, Ontario, Bayern" />
+                    <Input placeholder="e.g. Tamil Nadu, Karnataka, Maharashtra" />
                   </FormField>
 
                   {/* Postal Code */}
@@ -477,7 +477,7 @@ export const LocationsUpsert = ({
                     label="Postal Code"
                     name={LocationProps.postalCode}
                   >
-                    <Input placeholder="e.g. 94105, SW1A 1AA, 10115" />
+                    <Input placeholder="e.g. 600001, 641001, 620001" />
                   </FormField>
 
                   {/* Country */}
