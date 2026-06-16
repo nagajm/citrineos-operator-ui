@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 
-import { gql } from 'graphql-tag';
+import { gql } from "graphql-tag";
 
 export const TRANSACTION_LIST_QUERY = gql`
   query TransactionList(
@@ -18,19 +18,15 @@ export const TRANSACTION_LIST_QUERY = gql`
       where: $where
     ) {
       id
-      timeSpentCharging
       isActive
       chargingState
       ocppConnectionName
       stoppedReason
       transactionId
       evseId
-      remoteStartId
       totalKwh
       startTime
       endTime
-      createdAt
-      updatedAt
       location: Location {
         id
         name
@@ -45,29 +41,6 @@ export const TRANSACTION_LIST_QUERY = gql`
       }
       evse: Evse {
         id
-        createdAt
-        updatedAt
-      }
-      connector: Connector {
-        id
-        connectorId
-        type
-        createdAt
-        updatedAt
-      }
-      authorization: Authorization {
-        id
-        idToken
-        idTokenType
-        status
-        groupAuthorizationId
-        additionalInfo
-        concurrentTransaction
-        chargingPriority
-        language1
-        language2
-        personalMessage
-        cacheExpiryDateTime
         createdAt
         updatedAt
       }
@@ -113,22 +86,18 @@ export const GET_TRANSACTIONS_FOR_AUTHORIZATION = gql`
       offset: $offset
       limit: $limit
       order_by: $order_by
-      where: { _and: [{ authorizationId: { _eq: $id } }, $where] }
+      where: $where
     ) {
       id
-      timeSpentCharging
       isActive
       chargingState
       ocppConnectionName
       stoppedReason
       transactionId
       evseId
-      remoteStartId
       totalKwh
       startTime
       endTime
-      createdAt
-      updatedAt
       chargingStation: ChargingStation {
         id
         ocppConnectionName
@@ -160,7 +129,7 @@ export const GET_TRANSACTIONS_FOR_AUTHORIZATION = gql`
       }
     }
     Transactions_aggregate(
-      where: { _and: [{ authorizationId: { _eq: $id } }, $where] }
+      where: $where
     ) {
       aggregate {
         count
@@ -184,7 +153,6 @@ export const GET_TRANSACTION_LIST_FOR_STATION = gql`
       limit: $limit
     ) {
       id
-      timeSpentCharging
       isActive
       chargingState
       ocppConnectionName
@@ -192,12 +160,9 @@ export const GET_TRANSACTION_LIST_FOR_STATION = gql`
       stoppedReason
       transactionId
       evseId
-      remoteStartId
       totalKwh
       startTime
       endTime
-      createdAt
-      updatedAt
       TransactionEvents(where: { eventType: { _eq: "Started" } }) {
         eventType
         idTokenValue
@@ -205,10 +170,6 @@ export const GET_TRANSACTION_LIST_FOR_STATION = gql`
       }
       StartTransaction {
         idTokenDatabaseId
-      }
-      authorization: Authorization {
-        id
-        idToken
       }
       chargingStation: ChargingStation {
         id
@@ -260,7 +221,6 @@ export const TRANSACTION_GET_QUERY = gql`
   query GetTransactionById($id: Int!) {
     Transactions_by_pk(id: $id) {
       id
-      timeSpentCharging
       isActive
       chargingState
       stationId
@@ -269,13 +229,9 @@ export const TRANSACTION_GET_QUERY = gql`
       stoppedReason
       transactionId
       evseId
-      remoteStartId
-      authorizationId
       totalKwh
       startTime
       endTime
-      createdAt
-      updatedAt
       location: Location {
         name
         address
@@ -291,34 +247,6 @@ export const TRANSACTION_GET_QUERY = gql`
         id
         evseTypeId
         evseId
-        createdAt
-        updatedAt
-      }
-      connector: Connector {
-        id
-        connectorId
-        type
-        createdAt
-        updatedAt
-        tariff: Tariff {
-          id
-          currency
-          pricePerKwh
-        }
-      }
-      authorization: Authorization {
-        id
-        idToken
-        idTokenType
-        status
-        groupAuthorizationId
-        additionalInfo
-        concurrentTransaction
-        chargingPriority
-        language1
-        language2
-        personalMessage
-        cacheExpiryDateTime
         createdAt
         updatedAt
       }
