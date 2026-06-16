@@ -4,7 +4,7 @@
 'use client';
 
 import type { TransactionDto } from '@citrineos/base';
-import { BaseProps, TransactionProps } from '@citrineos/base';
+import { TransactionProps } from '@citrineos/base';
 import { Combobox } from '@lib/client/components/combobox';
 import { MenuSection } from '@lib/client/components/main-menu/main.menu';
 import { TransactionClass } from '@lib/cls/transaction.dto';
@@ -39,7 +39,7 @@ export const ActiveTransactionsCard = () => {
       },
     },
     queryOptions: getPlainToInstanceOptions(TransactionClass),
-    sorters: [{ field: BaseProps.updatedAt, order: 'desc' }],
+    sorters: [{ field: 'startTime', order: 'desc' }],
     pagination: {
       mode: 'off',
     },
@@ -62,7 +62,7 @@ export const ActiveTransactionsCard = () => {
       ...getPlainToInstanceOptions(TransactionClass),
       enabled: searchFilters.length > 0,
     },
-    sorters: [{ field: BaseProps.updatedAt, order: 'desc' }],
+    sorters: [{ field: 'startTime', order: 'desc' }],
     pagination: { mode: 'off' },
   });
 
@@ -147,7 +147,6 @@ export const ActiveTransactionsCard = () => {
 
                       <div>Station: {transaction.ocppConnectionName}</div>
                       <div>Total kWh: {transaction.totalKwh?.toFixed(2)}</div>
-                      <div>Total Time: {transaction.timeSpentCharging}</div>
                       <div>Status: {transaction.chargingState}</div>
                     </div>
                   ))
