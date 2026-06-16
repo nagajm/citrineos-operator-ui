@@ -69,7 +69,6 @@ export const CHARGING_STATIONS_LIST_QUERY = gql`
       }
       transactions: Transactions(where: { isActive: { _eq: true } }) {
         id
-        timeSpentCharging
         isActive
         chargingState
         stationId
@@ -77,10 +76,7 @@ export const CHARGING_STATIONS_LIST_QUERY = gql`
         stoppedReason
         transactionId
         evseId
-        remoteStartId
         totalKwh
-        createdAt
-        updatedAt
       }
       connectors: Connectors {
         connectorId
@@ -287,17 +283,12 @@ export const CHARGING_STATIONS_GET_QUERY = gql`
         id
         stationId
         ocppConnectionName
-        timeSpentCharging
         isActive
         chargingState
-        ocppConnectionName
         stoppedReason
         transactionId
         evseId
-        remoteStartId
         totalKwh
-        createdAt
-        updatedAt
       }
       connectors: Connectors {
         id
@@ -350,17 +341,13 @@ export const GET_CHARGING_STATIONS_WITH_LOCATION_AND_LATEST_STATUS_NOTIFICATIONS
       }
       transactions: Transactions(where: { isActive: { _eq: true } }) {
         id
-        timeSpentCharging
         isActive
         chargingState
         ocppConnectionName
         stoppedReason
         transactionId
         evseId
-        remoteStartId
         totalKwh
-        createdAt
-        updatedAt
       }
       location: Location {
         id
