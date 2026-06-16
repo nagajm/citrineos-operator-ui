@@ -25,11 +25,6 @@ export const CHARGING_STATIONS_LIST_QUERY = gql`
       chargePointVendor
       chargePointModel
       firmwareVersion
-      createdAt
-      updatedAt
-      floorLevel
-      parkingRestrictions
-      capabilities
       location: Location {
         id
         name
@@ -39,8 +34,6 @@ export const CHARGING_STATIONS_LIST_QUERY = gql`
         state
         country
         coordinates
-        createdAt
-        updatedAt
       }
       evses: Evses {
         id
@@ -125,8 +118,6 @@ export const FAULTED_CHARGING_STATIONS_LIST_QUERY = gql`
       isOnline
       protocol
       locationId
-      createdAt
-      updatedAt
       location: Location {
         id
         name
@@ -136,8 +127,6 @@ export const FAULTED_CHARGING_STATIONS_LIST_QUERY = gql`
         state
         country
         coordinates
-        createdAt
-        updatedAt
       }
       LatestStatusNotifications {
         id
@@ -207,13 +196,6 @@ export const CHARGING_STATIONS_GET_QUERY = gql`
       chargePointVendor
       chargePointModel
       firmwareVersion
-      createdAt
-      updatedAt
-      floorLevel
-      parkingRestrictions
-      capabilities
-      coordinates
-      use16StatusNotification0
       location: Location {
         id
         name
@@ -223,8 +205,6 @@ export const CHARGING_STATIONS_GET_QUERY = gql`
         state
         country
         coordinates
-        createdAt
-        updatedAt
       }
       evses: Evses {
         id
@@ -325,8 +305,6 @@ export const GET_CHARGING_STATIONS_WITH_LOCATION_AND_LATEST_STATUS_NOTIFICATIONS
       isOnline
       protocol
       locationId
-      createdAt
-      updatedAt
       latestStatusNotifications: LatestStatusNotifications {
         statusNotification: StatusNotification {
           id
@@ -358,8 +336,6 @@ export const GET_CHARGING_STATIONS_WITH_LOCATION_AND_LATEST_STATUS_NOTIFICATIONS
         state
         country
         coordinates
-        createdAt
-        updatedAt
       }
       evses: Evses {
         id
@@ -390,11 +366,6 @@ export const CHARGING_STATIONS_CREATE_MUTATION = gql`
       isOnline
       protocol
       locationId
-      createdAt
-      updatedAt
-      floorLevel
-      parkingRestrictions
-      capabilities
     }
   }
 `;
@@ -410,8 +381,6 @@ export const CHARGING_STATIONS_EDIT_MUTATION = gql`
       isOnline
       protocol
       locationId
-      createdAt
-      updatedAt
     }
   }
 `;
@@ -424,8 +393,6 @@ export const CHARGING_STATIONS_DELETE_MUTATION = gql`
       isOnline
       protocol
       locationId
-      createdAt
-      updatedAt
     }
   }
 `;
