@@ -259,7 +259,6 @@ export const TRANSACTION_EDIT_MUTATION = gql`
     update_Transactions_by_pk(pk_columns: { id: $id }, _set: $object) {
       id
       isActive
-      updatedAt
     }
   }
 `;
