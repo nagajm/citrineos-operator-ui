@@ -18,7 +18,10 @@ export const OperatorsList = () => {
   useEffect(() => {
     fetch('/api/voltstation/operators')
       .then((r) => r.json())
-      .then(setOperators)
+      .then((data) => {
+        if (Array.isArray(data)) setOperators(data);
+        else setError('Failed to load operators');
+      })
       .catch(() => setError('Failed to load operators'))
       .finally(() => setLoading(false));
   }, []);
