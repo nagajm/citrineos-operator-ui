@@ -139,6 +139,7 @@ export const TransactionDetailTabsCard = ({
                   },
                   queryOptions: {
                     ...getPlainToInstanceOptions(AuthorizationClass),
+                    enabled: !!authorization?.id,
                     select: (data: any) => {
                       return data;
                     },
