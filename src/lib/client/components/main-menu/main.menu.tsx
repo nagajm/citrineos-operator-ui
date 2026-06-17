@@ -7,6 +7,7 @@ import { Logo } from '@lib/client/components/title';
 import { cn } from '@lib/utils/cn';
 import {
   ArrowLeftRight,
+  Building2,
   ChevronLeft,
   ChevronRight,
   Clipboard,
@@ -17,6 +18,7 @@ import {
   Receipt,
   Users,
 } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { Button } from '@lib/client/components/ui/button';
@@ -34,6 +36,7 @@ export enum MenuSection {
   TRANSACTIONS = 'transactions',
   TARIFFS = 'tariffs',
   PARTNERS = 'partners',
+  VOLTSTATION_OPERATORS = 'voltstation/operators',
 }
 
 export interface MainMenuProps {
@@ -47,6 +50,7 @@ interface MenuItem {
 }
 
 export const MainMenu = ({ activeSection }: MainMenuProps) => {
+  const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(true);
   const [isHelpOpen, setIsHelpOpen] = useState(false);
   const menuRef = useRef<HTMLElement>(null);
@@ -98,6 +102,11 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
       label: translate('TenantPartners.TenantPartners'),
       icon: <Users className={sidebarIconSize} />,
     },
+    {
+      key: `/${MenuSection.VOLTSTATION_OPERATORS}`,
+      label: 'Operators',
+      icon: <Building2 className={sidebarIconSize} />,
+    },
   ];
 
   return (
@@ -118,7 +127,7 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
         <nav className="flex-1 overflow-y-auto py-2">
           <ul className="space-y-1 px-3">
             {mainMenuItems.map((item) => {
-              const isActive = `/${activeSection}` === item.key;
+              const isActive = pathname ? pathname.startsWith(item.key) : `/${activeSection}` === item.key;
               return (
                 <li key={item.key}>
                   <Link
