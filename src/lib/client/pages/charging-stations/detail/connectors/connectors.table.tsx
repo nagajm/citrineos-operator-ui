@@ -38,6 +38,7 @@ export const ConnectorsTable: React.FC<ConnectorsTableProps> = ({
             </th>
             <th className="px-4 py-2 text-left font-medium">Type</th>
             <th className="px-4 py-2 text-left font-medium">Status</th>
+            <th className="px-4 py-2 text-left font-medium">Error</th>
             <th className="px-4 py-2 text-left font-medium">Max Power</th>
             <th className="px-4 py-2 text-left font-medium">Tariff</th>
             <th className="px-4 py-2 text-left font-medium">Actions</th>
@@ -47,7 +48,7 @@ export const ConnectorsTable: React.FC<ConnectorsTableProps> = ({
           {connectors.length === 0 ? (
             <tr>
               <td
-                colSpan={7}
+                colSpan={8}
                 className="px-4 py-8 text-center text-muted-foreground"
               >
                 No connectors
@@ -61,7 +62,20 @@ export const ConnectorsTable: React.FC<ConnectorsTableProps> = ({
                   <td className="px-4 py-2">{connector.connectorId}</td>
                   <td className="px-4 py-2">{connector.evseTypeConnectorId}</td>
                   <td className="px-4 py-2">{connector.type}</td>
-                  <td className="px-4 py-2">{connector.status}</td>
+                  <td className="px-4 py-2">{connector.status ?? '-'}</td>
+                  <td className="px-4 py-2 text-destructive text-xs">
+                    {connector.errorCode && connector.errorCode !== 'NoError' ? (
+                      <span>
+                        {connector.errorCode}
+                        {connector.info ? ` — ${connector.info}` : ''}
+                        {(connector as any).vendorErrorCode
+                          ? ` (${(connector as any).vendorErrorCode})`
+                          : ''}
+                      </span>
+                    ) : (
+                      '-'
+                    )}
+                  </td>
                   <td className="px-4 py-2">
                     {formatPower(connector.maximumPowerWatts || undefined)}
                   </td>

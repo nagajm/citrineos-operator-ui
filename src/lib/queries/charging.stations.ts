@@ -281,6 +281,9 @@ export const CHARGING_STATIONS_GET_QUERY = gql`
           stationId
           timestamp
           updatedAt
+          errorCode
+          info
+          vendorErrorCode
         }
       }
       transactions: Transactions(where: { isActive: { _eq: true } }) {

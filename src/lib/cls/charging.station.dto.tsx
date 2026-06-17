@@ -101,6 +101,8 @@ export const getChargingStationStatus = (
 
   if (counts[ChargingStationStatus.FAULTED] > 0) {
     return ChargingStationStatus.FAULTED;
+  } else if (counts[ChargingStationStatus.CHARGING] > 0) {
+    return ChargingStationStatus.CHARGING;
   } else if (counts[ChargingStationStatus.AVAILABLE] > 0) {
     return ChargingStationStatus.AVAILABLE;
   } else if (counts[ChargingStationStatus.CHARGING_SUSPENDED] > 0) {
@@ -123,33 +125,67 @@ export const getChargingStationStatusCounts = (
   const evses = chargingStation?.evses;
   if (evses && evses.length > 0) {
     for (const evse of evses) {
-      const latestStatusNotificationForEvse =
-        chargingStation?.statusNotifications?.find(
-          (latestStatusNotification) =>
-            latestStatusNotification?.evseId === evse.id &&
-            latestStatusNotification?.connectorId === evse.connectors?.[0]?.id,
+      // Support two response shapes from different queries:
+      //   LatestStatusNotifications (PascalCase) + StatusNotification (detail query, no alias)
+      //   latestStatusNotifications (camelCase) + statusNotification (overview query, aliased)
+      const latestArr: any[] =
+        (chargingStation as any).LatestStatusNotifications ||
+        (chargingStation as any).latestStatusNotifications ||
+        [];
+
+      const matchedLsn = latestArr.find((lsn: any) => {
+        const sn = lsn?.StatusNotification ?? lsn?.statusNotification;
+        if (!sn) return false;
+        // evseId in StatusNotification is the OCPP-level evse ID.
+        // Match against evse.evseId (OCPP ID column) or evse.evseTypeId (fallback for overview query).
+        const evseOcppId =
+          (evse as any).evseId ?? (evse as any).evseTypeId;
+        return sn.evseId === null || sn.evseId === evseOcppId;
+      });
+
+      let connectorStatus: ConnectorStatusEnumType | undefined;
+      if (matchedLsn) {
+        const sn =
+          matchedLsn.StatusNotification ?? matchedLsn.statusNotification;
+        connectorStatus = sn?.connectorStatus;
+      } else {
+        // Legacy path: flat statusNotifications array (OCPP 1.6 mapping via @Expose)
+        const legacyMatch = chargingStation?.statusNotifications?.find(
+          (sn) =>
+            sn?.evseId === evse.id &&
+            sn?.connectorId === evse.connectors?.[0]?.id,
         );
-      if (latestStatusNotificationForEvse) {
-        const connectorStatus: ConnectorStatusEnumType =
-          latestStatusNotificationForEvse?.connectorStatus ||
-          OCPP2_0_1.ConnectorStatusEnumType.Unavailable;
+        connectorStatus = legacyMatch?.connectorStatus;
+      }
+
+      if (connectorStatus) {
         switch (connectorStatus) {
           case OCPP2_0_1.ConnectorStatusEnumType.Available:
             counts[ChargingStationStatus.AVAILABLE]++;
             break;
           case OCPP2_0_1.ConnectorStatusEnumType.Occupied: {
-            const activeTransaction = (
-              chargingStation as ChargingStationClass
-            )?.transactions?.find(
-              (transaction) => transaction.evse?.id === evse.id,
-            );
-            if (activeTransaction && activeTransaction.isActive) {
-              const chargingState = activeTransaction.chargingState;
-              if (chargingState === OCPP2_0_1.ChargingStateEnumType.Charging) {
-                counts[ChargingStationStatus.CHARGING]++;
+            // Only derive CHARGING from an active transaction when the station is online.
+            // When offline, an open transaction is stale — show Unavailable instead.
+            if ((chargingStation as any).isOnline) {
+              const activeTransaction = (
+                chargingStation as ChargingStationClass
+              )?.transactions?.find(
+                (transaction) => transaction.evseId === evse.id,
+              );
+              if (activeTransaction && activeTransaction.isActive) {
+                const chargingState = activeTransaction.chargingState;
+                if (
+                  chargingState === OCPP2_0_1.ChargingStateEnumType.Charging
+                ) {
+                  counts[ChargingStationStatus.CHARGING]++;
+                } else {
+                  counts[ChargingStationStatus.CHARGING_SUSPENDED]++;
+                }
               } else {
-                counts[ChargingStationStatus.CHARGING_SUSPENDED]++;
+                counts[ChargingStationStatus.AVAILABLE]++;
               }
+            } else {
+              counts[ChargingStationStatus.UNAVAILABLE]++;
             }
             break;
           }
@@ -157,11 +193,9 @@ export const getChargingStationStatusCounts = (
             counts[ChargingStationStatus.FAULTED]++;
             break;
           case OCPP2_0_1.ConnectorStatusEnumType.Unavailable:
-            counts[ChargingStationStatus.UNAVAILABLE]++;
-            break;
           case OCPP2_0_1.ConnectorStatusEnumType.Reserved:
           default:
-            // no handling
+            counts[ChargingStationStatus.UNAVAILABLE]++;
             break;
         }
       } else {
