@@ -6,12 +6,14 @@ import { Button } from '@lib/client/components/ui/button';
 import { Card, CardContent, CardHeader } from '@lib/client/components/ui/card';
 import { Badge } from '@lib/client/components/ui/badge';
 import { heading2Style, pageMargin } from '@lib/client/styles/page';
-import { Pencil, Plus, PowerOff, Zap } from 'lucide-react';
+import { Pencil, Plus, PowerOff, Search, Zap } from 'lucide-react';
+import { Input } from '@lib/client/components/ui/input';
 import type { VsOperator } from '@lib/voltstation/types';
 
 export const OperatorsList = () => {
   const router = useRouter();
   const [operators, setOperators] = useState<VsOperator[]>([]);
+  const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
   const [error, setError] = useState('');
@@ -29,6 +31,14 @@ export const OperatorsList = () => {
   };
 
   useEffect(() => { loadOperators(); }, []);
+
+  const q = search.toLowerCase();
+  const filtered = operators.filter(
+    (op) =>
+      op.name.toLowerCase().includes(q) ||
+      op.email.toLowerCase().includes(q) ||
+      (op.company ?? '').toLowerCase().includes(q),
+  );
 
   const toggleActive = async (op: VsOperator) => {
     setToggling(op.id);
@@ -54,6 +64,16 @@ export const OperatorsList = () => {
         </Button>
       </div>
 
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+        <Input
+          placeholder="Search by name, email or company…"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          className="pl-9"
+        />
+      </div>
+
       {loading && <p className="text-muted-foreground">Loading…</p>}
       {error && <p className="text-destructive">{error}</p>}
 
@@ -61,8 +81,12 @@ export const OperatorsList = () => {
         <p className="text-muted-foreground">No operators yet. Create one to get started.</p>
       )}
 
+      {!loading && !error && operators.length > 0 && filtered.length === 0 && (
+        <p className="text-muted-foreground text-sm">No operators match "{search}".</p>
+      )}
+
       <div className="flex flex-col gap-3">
-        {operators.map((op) => (
+        {filtered.map((op) => (
           <Card key={op.id}>
             <CardHeader className="pb-2 flex flex-row items-center justify-between">
               <div className="flex items-center gap-3">
