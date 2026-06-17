@@ -11,11 +11,12 @@ import {
   ChevronRight,
   Clipboard,
   EvCharger,
+  Handshake,
   HelpCircle,
   Home,
   MapPin,
   Receipt,
-  Users,
+  UserCog,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -99,12 +100,12 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
     {
       key: `/${MenuSection.PARTNERS}`,
       label: translate('TenantPartners.TenantPartners'),
-      icon: <Users className={sidebarIconSize} />,
+      icon: <Handshake className={sidebarIconSize} />,
     },
     {
       key: `/${MenuSection.VOLTSTATION_OPERATORS}`,
       label: 'Operators',
-      icon: <Users className={sidebarIconSize} />,
+      icon: <UserCog className={sidebarIconSize} />,
     },
   ];
 
