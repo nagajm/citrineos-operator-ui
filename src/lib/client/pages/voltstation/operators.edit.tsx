@@ -33,9 +33,8 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
           name: op.name ?? '',
           phone: op.phone ?? '',
           company: op.company ?? '',
-          billingRate: '',
+          billingRate: op.currentRate != null ? String(op.currentRate) : '',
         });
-        // Load current billing rate from profile endpoint (not available here — leave blank)
       })
       .catch(() => setError('Failed to load operator'))
       .finally(() => setLoading(false));
@@ -72,7 +71,7 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
     }
   };
 
-  if (loading) return <p className={`${pageMargin} text-muted-foreground`}>Loading…</p>;
+  if (loading) return <p className={`${pageMargin} text-muted-foreground`}>Loadingâ€¦</p>;
 
   return (
     <Card className={pageMargin}>
@@ -98,14 +97,14 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
               <Input value={form.company} onChange={set('company')} />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium">New Billing Rate (₹/kWh)</label>
+              <label className="text-sm font-medium">Billing Rate (â‚¹/kWh)</label>
               <Input
                 type="number"
                 step="0.01"
                 min="0"
                 value={form.billingRate}
                 onChange={set('billingRate')}
-                placeholder="Leave blank to keep current"
+                placeholder="0.00"
               />
             </div>
           </div>
@@ -114,7 +113,7 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
 
           <div className="flex gap-3 mt-2">
             <Button type="submit" variant="success" disabled={saving}>
-              {saving ? 'Saving…' : 'Save Changes'}
+              {saving ? 'Savingâ€¦' : 'Save Changes'}
             </Button>
             <Button type="button" variant="outline" onClick={() => router.back()}>
               Cancel
