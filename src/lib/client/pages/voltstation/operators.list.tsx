@@ -6,7 +6,7 @@ import { Button } from '@lib/client/components/ui/button';
 import { Card, CardContent, CardHeader } from '@lib/client/components/ui/card';
 import { Badge } from '@lib/client/components/ui/badge';
 import { heading2Style, pageMargin } from '@lib/client/styles/page';
-import { Plus, Link2 } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import type { VsOperator } from '@lib/voltstation/types';
 
 export const OperatorsList = () => {
@@ -55,7 +55,7 @@ export const OperatorsList = () => {
                 size="sm"
                 onClick={() => router.push(`/voltstation/operators/${op.id}/assign`)}
               >
-                <Link2 className="size-4 mr-2" />
+                <Plus className="size-4 mr-2" />
                 Assign Station
               </Button>
             </CardHeader>

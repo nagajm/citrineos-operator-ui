@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader } from '@lib/client/components/ui/card';
 import { Badge } from '@lib/client/components/ui/badge';
 import { heading2Style, heading3Style, pageMargin } from '@lib/client/styles/page';
 import { cardHeaderFlex } from '@lib/client/styles/card';
-import { ChevronLeft, Unlink } from 'lucide-react';
+import { ChevronLeft, Trash2 } from 'lucide-react';
 import type { VsStation } from '@lib/voltstation/types';
 
 interface Props {
@@ -118,7 +118,7 @@ export const OperatorsAssign = ({ operatorId }: Props) => {
                         disabled={saving}
                         onClick={() => handleUnassign(s.id)}
                       >
-                        <Unlink className="size-4 mr-1" />
+                        <Trash2 className="size-4 mr-1" />
                         Remove
                       </Button>
                     </div>

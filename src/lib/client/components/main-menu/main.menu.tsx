@@ -7,7 +7,6 @@ import { Logo } from '@lib/client/components/title';
 import { cn } from '@lib/utils/cn';
 import {
   ArrowLeftRight,
-  Building2,
   ChevronLeft,
   ChevronRight,
   Clipboard,
@@ -105,7 +104,7 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
     {
       key: `/${MenuSection.VOLTSTATION_OPERATORS}`,
       label: 'Operators',
-      icon: <Building2 className={sidebarIconSize} />,
+      icon: <Users className={sidebarIconSize} />,
     },
   ];
 
