@@ -39,6 +39,8 @@ jobs:
           NEXTAUTH_SECRET=${{ secrets.NEXTAUTH_SECRET }}
           ALLOW_IMAGE_UPLOAD=false
           ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
+          VOLTSTATION_API_URL=${{ secrets.VOLTSTATION_API_URL }}
+          VOLTSTATION_ADMIN_API_KEY=${{ secrets.VOLTSTATION_ADMIN_API_KEY }}
           EOF
 
       - name: Set up Docker Buildx
@@ -79,6 +81,8 @@ jobs:
             GOOGLE_MAPS_ADDRESS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
             ADMIN_PASSWORD=${{ secrets.ADMIN_PASSWORD }}
             ALLOW_IMAGE_UPLOAD=false
+            VOLTSTATION_API_URL=${{ secrets.VOLTSTATION_API_URL }}
+            VOLTSTATION_ADMIN_API_KEY=${{ secrets.VOLTSTATION_ADMIN_API_KEY }}
             ENVEOF
             docker compose pull citrine-ui
             docker compose up -d citrine-ui
