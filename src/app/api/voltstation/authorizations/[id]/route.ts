@@ -7,9 +7,10 @@ const headers = () => ({ 'Content-Type': 'application/json', 'x-admin-key': KEY 
 
 export async function GET(
   _req: NextRequest,
-  { params }: { params: { id: string } },
+  { params }: { params: Promise<{ id: string }> },
 ) {
-  const res = await fetch(`${API}/admin/authorizations/${params.id}`, {
+  const { id } = await params;
+  const res = await fetch(`${API}/admin/authorizations/${id}`, {
     headers: headers(),
     cache: 'no-store',
   });
