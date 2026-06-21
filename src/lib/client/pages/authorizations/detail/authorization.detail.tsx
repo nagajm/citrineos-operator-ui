@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Contributors to the CitrineOS Project
+﻿// SPDX-FileCopyrightText: 2025 Contributors to the CitrineOS Project
 //
 // SPDX-License-Identifier: Apache-2.0
 'use client';
@@ -69,7 +69,7 @@ export const AuthorizationDetail: React.FC<AuthorizationDetailProps> = ({
     >
       <div className={`${pageMargin} ${pageFlex}`}>
         <AuthorizationDetailCard authorization={authorization} />
-        <AuthorizationOwnerCard authorizationId={authorization.id} />
+        {authorization.id != null && <AuthorizationOwnerCard authorizationId={authorization.id} />}
         <AuthorizationDetailTabsCard authorization={authorization} />
       </div>
     </CanAccess>
