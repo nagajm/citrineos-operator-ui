@@ -60,7 +60,7 @@ export const AuthorizationDetailTabsCard = ({
                     gqlQuery: GET_TRANSACTIONS_FOR_AUTHORIZATION,
                     gqlVariables: {
                       limit: 10000,
-                      id: authorization?.id,
+                      idTokenValue: authIdToken,
                     },
                   },
                   queryOptions: {

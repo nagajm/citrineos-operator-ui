@@ -76,7 +76,7 @@ export const TRANSACTION_LIST_QUERY = gql`
 
 export const GET_TRANSACTIONS_FOR_AUTHORIZATION = gql`
   query TransactionsList(
-    $id: Int!
+    $idTokenValue: String
     $limit: Int!
     $offset: Int!
     $order_by: [Transactions_order_by!]
@@ -86,7 +86,12 @@ export const GET_TRANSACTIONS_FOR_AUTHORIZATION = gql`
       offset: $offset
       limit: $limit
       order_by: $order_by
-      where: $where
+      where: {
+        _and: [
+          $where
+          { TransactionEvents: { idTokenValue: { _eq: $idTokenValue } } }
+        ]
+      }
     ) {
       id
       isActive
@@ -129,7 +134,12 @@ export const GET_TRANSACTIONS_FOR_AUTHORIZATION = gql`
       }
     }
     Transactions_aggregate(
-      where: $where
+      where: {
+        _and: [
+          $where
+          { TransactionEvents: { idTokenValue: { _eq: $idTokenValue } } }
+        ]
+      }
     ) {
       aggregate {
         count

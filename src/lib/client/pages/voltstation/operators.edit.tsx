@@ -71,7 +71,7 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
     }
   };
 
-  if (loading) return <p className={`${pageMargin} text-muted-foreground`}>Loadingâ€¦</p>;
+  if (loading) return <p className={`${pageMargin} text-muted-foreground`}>Loading…</p>;
 
   return (
     <Card className={pageMargin}>
@@ -97,7 +97,7 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
               <Input value={form.company} onChange={set('company')} />
             </div>
             <div className="flex flex-col gap-1">
-              <label className="text-sm font-medium">Billing Rate (â‚¹/kWh)</label>
+              <label className="text-sm font-medium">Billing Rate (₹/kWh)</label>
               <Input
                 type="number"
                 step="0.01"
@@ -113,7 +113,7 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
 
           <div className="flex gap-3 mt-2">
             <Button type="submit" variant="success" disabled={saving}>
-              {saving ? 'Savingâ€¦' : 'Save Changes'}
+              {saving ? 'Saving…' : 'Save Changes'}
             </Button>
             <Button type="button" variant="outline" onClick={() => router.back()}>
               Cancel
