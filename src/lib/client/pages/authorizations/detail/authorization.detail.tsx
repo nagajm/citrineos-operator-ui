@@ -14,6 +14,7 @@ import { getPlainToInstanceOptions } from '@lib/utils/tables';
 import { CanAccess, useOne, useTranslate } from '@refinedev/core';
 import { pageFlex, pageMargin } from '@lib/client/styles/page';
 import { AuthorizationDetailTabsCard } from '@lib/client/pages/authorizations/detail/authorization.detail.tabs.card';
+import { AuthorizationOwnerCard } from '@lib/client/pages/authorizations/detail/authorization.owner.card';
 import { Skeleton } from '@lib/client/components/ui/skeleton';
 import { NoDataFoundCard } from '@lib/client/components/no-data-found-card';
 import { AccessDeniedFallbackCard } from '@lib/client/components/access-denied-fallback-card';
@@ -68,6 +69,7 @@ export const AuthorizationDetail: React.FC<AuthorizationDetailProps> = ({
     >
       <div className={`${pageMargin} ${pageFlex}`}>
         <AuthorizationDetailCard authorization={authorization} />
+        <AuthorizationOwnerCard authorizationId={authorization.id} />
         <AuthorizationDetailTabsCard authorization={authorization} />
       </div>
     </CanAccess>
