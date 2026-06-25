@@ -18,9 +18,13 @@ const requestMiddleware = async (request: any) => {
     ...request.headers,
   };
 
-  const hasuraAdminSecret = await getHasuraAdminSecretAction().then((result) =>
-    result.success ? result.data : '',
-  );
+  // Try the build-time env var first (avoids a server action round-trip that can
+  // fail if the NextAuth session is stale, causing all queries to abort).
+  const hasuraAdminSecret =
+    process.env.NEXT_PUBLIC_HASURA_ADMIN_SECRET ||
+    (await getHasuraAdminSecretAction().then((result) =>
+      result.success ? result.data : '',
+    ));
 
   if (hasuraAdminSecret) {
     console.debug('Authorizing to Hasura via Hasura Admin Secret');
