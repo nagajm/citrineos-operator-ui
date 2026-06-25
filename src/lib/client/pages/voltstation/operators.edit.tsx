@@ -23,6 +23,8 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
     phone: '',
     company: '',
     billingRate: '',
+    minStartBalance: '',
+    walletCutoff: '',
   });
 
   useEffect(() => {
@@ -34,6 +36,8 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
           phone: op.phone ?? '',
           company: op.company ?? '',
           billingRate: op.currentRate != null ? String(op.currentRate) : '',
+          minStartBalance: op.minStartBalance != null ? String(op.minStartBalance) : '50',
+          walletCutoff: op.walletCutoff != null ? String(op.walletCutoff) : '0',
         });
       })
       .catch(() => setError('Failed to load operator'))
@@ -55,6 +59,12 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
       };
       if (form.billingRate !== '') {
         body.billingRate = parseFloat(form.billingRate);
+      }
+      if (form.minStartBalance !== '') {
+        body.minStartBalance = parseFloat(form.minStartBalance);
+      }
+      if (form.walletCutoff !== '') {
+        body.walletCutoff = parseFloat(form.walletCutoff);
       }
       const res = await fetch(`/api/voltstation/operators/${operatorId}`, {
         method: 'PATCH',
@@ -82,7 +92,7 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
         </div>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-lg">
+        <form onSubmit={handleSubmit} className="flex flex-col gap-6 max-w-lg">
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-1">
               <label className="text-sm font-medium">Name *</label>
@@ -109,9 +119,39 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
             </div>
           </div>
 
+          <div>
+            <p className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">Wallet Guards</p>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Min Balance to Start (₹)</label>
+                <Input
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={form.minStartBalance}
+                  onChange={set('minStartBalance')}
+                  placeholder="50"
+                />
+                <p className="text-xs text-muted-foreground">Driver must have at least this much to begin a session</p>
+              </div>
+              <div className="flex flex-col gap-1">
+                <label className="text-sm font-medium">Cutoff During Charging (₹)</label>
+                <Input
+                  type="number"
+                  step="1"
+                  min="0"
+                  value={form.walletCutoff}
+                  onChange={set('walletCutoff')}
+                  placeholder="0"
+                />
+                <p className="text-xs text-muted-foreground">Session auto-stops when balance drops to this level</p>
+              </div>
+            </div>
+          </div>
+
           {error && <p className="text-destructive text-sm">{error}</p>}
 
-          <div className="flex gap-3 mt-2">
+          <div className="flex gap-3">
             <Button type="submit" variant="success" disabled={saving}>
               {saving ? 'Saving…' : 'Save Changes'}
             </Button>
