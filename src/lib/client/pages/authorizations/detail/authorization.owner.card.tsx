@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Contributors to the CitrineOS Project
+﻿// SPDX-FileCopyrightText: 2025 Contributors to the CitrineOS Project
 //
 // SPDX-License-Identifier: Apache-2.0
 'use client';
@@ -37,7 +37,7 @@ export const AuthorizationOwnerCard = ({
   const { data, isLoading } = useQuery<EnrichedAuthorization>({
     queryKey: ['voltstation', 'authorizations', authorizationId],
     queryFn: async () => {
-      const res = await fetch(`/api/voltstation/authorizations/${authorizationId}`);
+      const res = await fetch(`/api/zappo/authorizations/${authorizationId}`);
       if (!res.ok) throw new Error('Failed to load owner info');
       return res.json();
     },

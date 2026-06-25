@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Contributors to the CitrineOS Project
+﻿// SPDX-FileCopyrightText: 2025 Contributors to the CitrineOS Project
 //
 // SPDX-License-Identifier: Apache-2.0
 //
@@ -10,7 +10,7 @@
 // pure CitrineOS OCPP data (Transactions, ChargingStations, …) — it has no concept of drivers.
 //
 // DO NOT revert this page to a Hasura gqlQuery — see CLAUDE.md "Operator UI Data Source
-// Architecture" and the proxy route at /src/app/api/voltstation/authorizations/route.ts.
+// Architecture" and the proxy route at /src/app/api/zappo/authorizations/route.ts.
 'use client';
 
 import React, { useState } from 'react';
@@ -107,7 +107,7 @@ export const AuthorizationsList = () => {
     queryFn: async () => {
       const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
       if (search) params.set('search', search);
-      const res = await fetch(`/api/voltstation/authorizations?${params}`);
+      const res = await fetch(`/api/zappo/authorizations?${params}`);
       if (!res.ok) throw new Error('Failed to load authorizations');
       return res.json();
     },

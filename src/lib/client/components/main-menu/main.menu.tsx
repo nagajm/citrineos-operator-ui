@@ -1,4 +1,4 @@
-// SPDX-FileCopyrightText: 2025 Contributors to the CitrineOS Project
+﻿// SPDX-FileCopyrightText: 2025 Contributors to the CitrineOS Project
 //
 // SPDX-License-Identifier: Apache-2.0
 'use client';
@@ -17,6 +17,7 @@ import {
   MapPin,
   Receipt,
   UserCog,
+  Users,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
@@ -36,7 +37,8 @@ export enum MenuSection {
   TRANSACTIONS = 'transactions',
   TARIFFS = 'tariffs',
   PARTNERS = 'partners',
-  VOLTSTATION_OPERATORS = 'voltstation/operators',
+  ZAPPO_OPERATORS = 'zappo/operators',
+  ZAPPO_CRM = 'zappo/crm',
 }
 
 export interface MainMenuProps {
@@ -103,9 +105,14 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
       icon: <Handshake className={sidebarIconSize} />,
     },
     {
-      key: `/${MenuSection.VOLTSTATION_OPERATORS}`,
+      key: `/${MenuSection.ZAPPO_OPERATORS}`,
       label: 'Operators',
       icon: <UserCog className={sidebarIconSize} />,
+    },
+    {
+      key: `/${MenuSection.ZAPPO_CRM}`,
+      label: 'CRM',
+      icon: <Users className={sidebarIconSize} />,
     },
   ];
 
