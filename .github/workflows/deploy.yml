@@ -23,6 +23,8 @@ jobs:
         run: |
           cat > .env.local << EOF
           GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
+          NEXT_PUBLIC_GOOGLE_MAPS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
+          NEXT_PUBLIC_GOOGLE_MAPS_ADDRESS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
           GOOGLE_MAPS_LOCATION_PICKER_MAP_ID=${{ secrets.GOOGLE_MAPS_API_KEY }}
           GOOGLE_MAPS_ADDRESS_API_KEY=${{ secrets.GOOGLE_MAPS_API_KEY }}
           HASURA_ADMIN_SECRET=${{ secrets.HASURA_ADMIN_SECRET }}
@@ -90,3 +92,4 @@ jobs:
             docker compose pull citrine-ui
             docker compose up -d citrine-ui
             docker image prune -f
+

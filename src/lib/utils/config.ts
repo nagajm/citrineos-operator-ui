@@ -56,9 +56,9 @@ const getConfig: () => {
     appName: process.env.NEXT_PUBLIC_APP_NAME || 'CitrineOS',
     bannerMessage: process.env.NEXT_PUBLIC_BANNER_MESSAGE,
     googleMapsApiKey:
-      process.env.GOOGLE_MAPS_API_KEY || 'YOUR_GOOGLE_MAPS_API_KEY',
+      process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY || 'YOUR_GOOGLE_MAPS_API_KEY',
     googleMapsAddressApiKey:
-      process.env.GOOGLE_MAPS_ADDRESS_API_KEY ||
+      process.env.NEXT_PUBLIC_GOOGLE_MAPS_ADDRESS_API_KEY ||
       'YOUR_GOOGLE_MAPS_ADDRESS_API_KEY',
     googleMapsLocationPickerMapId:
       process.env.NEXT_PUBLIC_GOOGLE_MAPS_LOCATION_PICKER_MAP_ID ||
