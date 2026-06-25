@@ -83,6 +83,8 @@ jobs:
             ALLOW_IMAGE_UPLOAD=false
             VOLTSTATION_API_URL=${{ secrets.VOLTSTATION_API_URL }}
             VOLTSTATION_ADMIN_API_KEY=${{ secrets.VOLTSTATION_ADMIN_API_KEY }}
+            ZAPPO_API_URL=${{ secrets.ZAPPO_API_URL }}
+            ZAPPO_ADMIN_API_KEY=${{ secrets.ZAPPO_ADMIN_API_KEY }}
             ENVEOF
             docker compose pull citrine-ui
             docker compose up -d citrine-ui
