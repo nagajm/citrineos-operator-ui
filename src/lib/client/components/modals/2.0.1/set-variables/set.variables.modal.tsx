@@ -138,7 +138,7 @@ export const SetVariablesModal = ({ station }: SetVariablesModalProps) => {
     });
 
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { data: currentAttrData } = useList({
+    const { query: { data: currentAttrData } } = useList({
       resource: 'VariableAttributes',
       meta: { gqlQuery: VARIABLE_CURRENT_VALUE_QUERY },
       filters: [
