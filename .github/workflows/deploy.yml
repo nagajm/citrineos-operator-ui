@@ -33,7 +33,7 @@ jobs:
           NEXT_PUBLIC_DEFAULT_MAP_CENTER_LONGITUDE=78.9629
           NEXT_PUBLIC_API_URL=https://app.zappoevcharging.com/hasura/v1/graphql
           NEXT_PUBLIC_WS_URL=wss://app.zappoevcharging.com/hasura/v1/graphql
-          NEXT_PUBLIC_CITRINE_CORE_URL=http://65.0.157.6:8080
+          NEXT_PUBLIC_CITRINE_CORE_URL=https://app.zappoevcharging.com/citrine
           NEXT_PUBLIC_FILE_SERVER_URL=http://65.0.157.6:9000
           NEXT_PUBLIC_LOGO_URL=https://d1h8867rcwtfcw.cloudfront.net/logo-collapsed.svg
           NEXT_PUBLIC_ADMIN_EMAIL=jagan.mjm@gmail.com
@@ -94,5 +94,6 @@ jobs:
             docker compose pull citrine-ui
             docker compose up -d citrine-ui
             docker image prune -f
+
 
 
