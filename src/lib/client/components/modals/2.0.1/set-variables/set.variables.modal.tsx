@@ -19,12 +19,13 @@ import {
 import { Input } from '@lib/client/components/ui/input';
 import { ChargingStationClass } from '@lib/cls/charging.station.dto';
 import { COMPONENT_LIST_QUERY } from '@lib/queries/components';
+import { VARIABLE_CURRENT_VALUE_QUERY } from '@lib/queries/variable.attributes';
 import { VARIABLE_LIST_BY_COMPONENT_QUERY } from '@lib/queries/variables';
 import { ResourceType } from '@lib/utils/access.types';
 import type { MessageConfirmation } from '@lib/utils/MessageConfirmation';
 import { triggerMessageAndHandleResponse } from '@lib/utils/messages.utils';
 import { closeModal } from '@lib/utils/store/modal.slice';
-import { useSelect } from '@refinedev/core';
+import { useList, useSelect } from '@refinedev/core';
 import { useForm } from '@refinedev/react-hook-form';
 import { plainToInstance } from 'class-transformer';
 import React, { useMemo, useState } from 'react';
@@ -120,6 +121,7 @@ export const SetVariablesModal = ({ station }: SetVariablesModalProps) => {
 
   const variableSelects = fields.map((field, index) => {
     const componentId = form.watch(`setVariableData.${index}.componentId`);
+    const variableId = form.watch(`setVariableData.${index}.variableId`);
     // eslint-disable-next-line react-hooks/rules-of-hooks
     const { options, onSearch, query } = useSelect({
       resource: ResourceType.VARIABLES,
@@ -135,6 +137,22 @@ export const SetVariablesModal = ({ station }: SetVariablesModalProps) => {
       queryOptions: { enabled: !!componentId && componentId > 0 },
     });
 
+    // eslint-disable-next-line react-hooks/rules-of-hooks
+    const { data: currentAttrData } = useList({
+      resource: 'VariableAttributes',
+      meta: { gqlQuery: VARIABLE_CURRENT_VALUE_QUERY },
+      filters: [
+        { field: 'stationId', operator: 'eq', value: station?.id },
+        { field: 'componentId', operator: 'eq', value: componentId },
+        { field: 'variableId', operator: 'eq', value: variableId },
+      ],
+      pagination: { mode: 'off' },
+      queryOptions: {
+        enabled: componentId > 0 && variableId > 0 && !!station?.id,
+      },
+    });
+    const currentValue: string | null = (currentAttrData?.data?.[0] as any)?.value ?? null;
+
     if (
       componentId > 0 &&
       options.length > 0 &&
@@ -143,7 +161,7 @@ export const SetVariablesModal = ({ station }: SetVariablesModalProps) => {
       setVariableOptionsMap((prev) => ({ ...prev, [index]: options }));
     }
 
-    return { options, onSearch, isLoading: query.isLoading };
+    return { options, onSearch, isLoading: query.isLoading, currentValue };
   });
 
   const onFinish = async (values: SetVariablesFormData) => {
@@ -225,10 +243,12 @@ export const SetVariablesModal = ({ station }: SetVariablesModalProps) => {
             options: variableOptions,
             onSearch: variableOnSearch,
             isLoading: variableLoading,
+            currentValue,
           } = variableSelects[index] || {
             options: [],
             onSearch: () => {},
             isLoading: false,
+            currentValue: null,
           };
 
           return (
@@ -261,8 +281,9 @@ export const SetVariablesModal = ({ station }: SetVariablesModalProps) => {
                 control={form.control}
                 label={`Value #${index + 1}`}
                 name={`setVariableData.${index}.value`}
+                description={currentValue != null ? `Current: ${currentValue}` : undefined}
               >
-                <Input placeholder="Value To Set" />
+                <Input placeholder="New value" />
               </FormField>
 
               <SelectFormField

@@ -217,7 +217,9 @@ export const ChargingStationConfiguration: React.FC<
   useEffect(() => {
     if (station?.protocol && !versionInitialized.current) {
       versionInitialized.current = true;
-      if (station.protocol === OCPPVersion.OCPP2_0_1) {
+      // Treat any OCPP 2.x protocol (2.0.1, 2.1, etc.) as the 2.0.1 mode
+      // which uses VariableAttributes. Only fall back to 1.6 for ocpp1.6.
+      if (station.protocol.startsWith('ocpp2') || station.protocol === OCPPVersion.OCPP2_0_1) {
         setVersion('2.0.1');
       } else {
         setVersion('1.6');
@@ -542,7 +544,7 @@ export const ChargingStationConfiguration: React.FC<
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="1.6">OCPP 1.6</SelectItem>
-                <SelectItem value="2.0.1">OCPP 2.0.1</SelectItem>
+                <SelectItem value="2.0.1">OCPP 2.0.1 / 2.1</SelectItem>
               </SelectContent>
             </Select>
             <Button

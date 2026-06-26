@@ -54,6 +54,19 @@ export const VARIABLE_ATTRIBUTE_LIST_QUERY = gql`
   }
 `;
 
+export const VARIABLE_CURRENT_VALUE_QUERY = gql`
+  query VariableCurrentValue($where: VariableAttributes_bool_exp) {
+    VariableAttributes(where: $where, limit: 1) {
+      value
+    }
+    VariableAttributes_aggregate(where: $where) {
+      aggregate {
+        count
+      }
+    }
+  }
+`;
+
 export const VARIABLE_ATTRIBUTE_DOWNLOAD_QUERY = gql`
   query DownloadVariableAttributes($id: Int!) {
     VariableAttributes(
