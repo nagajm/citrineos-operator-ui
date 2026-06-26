@@ -25,7 +25,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Button } from '@lib/client/components/ui/button';
 import { sidebarIconSize } from '@lib/client/styles/icon';
 import { ThemeToggle } from '@lib/client/components/theme-toggle';
-import { ConnectionModal } from '@lib/client/components/modals/shared/connection-modal/connection.modal';
 import { LogoutButton } from '@lib/client/components/logout-button';
 import { useTranslate } from '@refinedev/core';
 
@@ -54,7 +53,6 @@ interface MenuItem {
 export const MainMenu = ({ activeSection }: MainMenuProps) => {
   const pathname = usePathname();
   const [collapsed, setCollapsed] = useState(true);
-  const [isHelpOpen, setIsHelpOpen] = useState(false);
   const menuRef = useRef<HTMLElement>(null);
   const translate = useTranslate();
 
@@ -161,14 +159,19 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
         {/* Bottom Menu - Help Link */}
         <div className="border-t border-border p-3 flex flex-col gap-2 items-center">
           <ThemeToggle expanded={!collapsed} />
-          <Button
-            variant="ghost"
-            onClick={() => setIsHelpOpen(true)}
+          <Link
+            href="/help"
+            className={cn(
+              'flex items-center gap-2 px-4 py-2 rounded-md text-sm transition-colors',
+              'hover:bg-accent hover:text-accent-foreground text-muted-foreground',
+              pathname?.startsWith('/help') && 'bg-accent text-accent-foreground font-medium',
+              collapsed && 'justify-center px-2',
+            )}
             title="Help"
           >
             <HelpCircle className={sidebarIconSize} />
             {!collapsed && <span>{translate('menu.help')}</span>}
-          </Button>
+          </Link>
           <LogoutButton expanded={!collapsed} />
         </div>
 
@@ -186,7 +189,6 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
           )}
         </Button>
       </aside>
-      <ConnectionModal open={isHelpOpen} onClose={() => setIsHelpOpen(false)} />
     </>
   );
 };
