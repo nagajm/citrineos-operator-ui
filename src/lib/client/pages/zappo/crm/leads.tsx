@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader } from '@lib/client/components/ui/card';
 import { Badge } from '@lib/client/components/ui/badge';
 import { Input } from '@lib/client/components/ui/input';
 import { heading2Style, pageMargin } from '@lib/client/styles/page';
-import { Plus, Search, ChevronRight, CheckSquare } from 'lucide-react';
+import { Plus, Search, ChevronRight, CheckSquare, Trash2 } from 'lucide-react';
 import type { CrmLead, CrmUser, LeadStage } from '@lib/zappo/crm-types';
 
 const STAGE_LABELS: Record<LeadStage, string> = {
@@ -86,6 +86,12 @@ export const CrmLeadsPage = () => {
 
   const handleSearch = (v: string) => { setSearch(v); load(v, stageFilter); };
   const handleStage = (v: string) => { setStageFilter(v); load(search, v); };
+
+  const deleteLead = async (id: string) => {
+    if (!window.confirm('Delete this lead? This cannot be undone.')) return;
+    await fetch(`/api/zappo/crm/leads/${id}`, { method: 'DELETE' });
+    load();
+  };
 
   const createLead = async () => {
     if (!form.name.trim()) return;
@@ -199,7 +205,7 @@ export const CrmLeadsPage = () => {
                     </span>
                   ) : null}
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2">
                   {assignee && (
                     <span className="flex items-center gap-1.5 shrink-0">
                       <span
@@ -211,6 +217,13 @@ export const CrmLeadsPage = () => {
                       <span className="text-xs text-muted-foreground hidden md:inline">{assignee.name}</span>
                     </span>
                   )}
+                  <button
+                    onClick={(e) => { e.stopPropagation(); deleteLead(lead.id); }}
+                    className="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                    title="Delete lead"
+                  >
+                    <Trash2 className="size-4" />
+                  </button>
                   <ChevronRight className="size-4 text-muted-foreground" />
                 </div>
               </CardContent>

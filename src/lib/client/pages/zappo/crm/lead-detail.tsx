@@ -71,6 +71,12 @@ export const CrmLeadDetailPage = ({ id }: { id: string }) => {
     load();
   };
 
+  const deleteLead = async () => {
+    if (!window.confirm(`Delete "${lead?.name}"? This cannot be undone.`)) return;
+    await fetch(`/api/zappo/crm/leads/${id}`, { method: 'DELETE' });
+    router.push('/zappo/crm/leads');
+  };
+
   if (loading) return <div className={`${pageMargin}`}><p className="text-muted-foreground">Loading…</p></div>;
   if (!lead) return <div className={`${pageMargin}`}><p className="text-destructive">Lead not found.</p></div>;
 
@@ -80,7 +86,10 @@ export const CrmLeadDetailPage = ({ id }: { id: string }) => {
         <Button variant="ghost" size="sm" onClick={() => router.push('/zappo/crm/leads')}>
           <ArrowLeft className="size-4 mr-1" /> Back
         </Button>
-        <h2 className={heading2Style}>{lead.name}</h2>
+        <h2 className={`${heading2Style} flex-1`}>{lead.name}</h2>
+        <Button variant="ghost" size="sm" onClick={deleteLead} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+          <Trash2 className="size-4 mr-1" /> Delete Lead
+        </Button>
       </div>
 
       {/* Stage selector */}
