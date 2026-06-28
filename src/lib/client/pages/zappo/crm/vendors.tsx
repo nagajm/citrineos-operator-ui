@@ -47,7 +47,7 @@ export const CrmVendorsPage = () => {
 
   useEffect(() => {
     load();
-    fetch('/api/zappo/crm/users')
+    fetch('/api/zappo/users')
       .then((r) => r.json())
       .then((d: CrmUser[]) => {
         if (Array.isArray(d)) {

@@ -14,6 +14,13 @@ const AVATAR_COLORS = [
   '#8B5CF6', '#06B6D4', '#EC4899', '#14B8A6',
 ];
 
+const ROLES: { value: string; label: string }[] = [
+  { value: 'super_admin', label: 'Super Admin' },
+  { value: 'admin',       label: 'Admin' },
+  { value: 'ops',         label: 'Operations' },
+  { value: 'sales',       label: 'Sales' },
+];
+
 function initials(name: string) {
   return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 }
@@ -21,34 +28,27 @@ function initials(name: string) {
 function Avatar({ name, color, size = 'md' }: { name: string; color: string; size?: 'sm' | 'md' | 'lg' }) {
   const sz = size === 'sm' ? 'w-6 h-6 text-[10px]' : size === 'lg' ? 'w-12 h-12 text-base' : 'w-9 h-9 text-sm';
   return (
-    <span
-      style={{ background: color }}
-      className={`${sz} rounded-full flex items-center justify-center font-bold text-black shrink-0`}
-    >
-      {initials(name)}
+    <span style={{ background: color }} className={`${sz} rounded-full flex items-center justify-center font-bold text-black shrink-0`}>
+      {initials(name || '?')}
     </span>
   );
 }
-
-interface UserForm { name: string; email: string; role: string; avatarColor: string; }
-const BLANK: UserForm = { name: '', email: '', role: 'member', avatarColor: '#00C896' };
 
 function ColorPicker({ value, onChange }: { value: string; onChange: (c: string) => void }) {
   return (
     <div className="flex items-center gap-2 flex-wrap">
       <span className="text-xs text-muted-foreground">Color:</span>
       {AVATAR_COLORS.map((c) => (
-        <button
-          key={c}
-          type="button"
-          style={{ background: c }}
+        <button key={c} type="button" style={{ background: c }}
           className={`w-6 h-6 rounded-full transition-transform ${value === c ? 'ring-2 ring-offset-1 ring-foreground scale-110' : 'hover:scale-105'}`}
-          onClick={() => onChange(c)}
-        />
+          onClick={() => onChange(c)} />
       ))}
     </div>
   );
 }
+
+interface UserForm { name: string; email: string; password: string; role: string; avatarColor: string; }
+const BLANK: UserForm = { name: '', email: '', password: '', role: 'admin', avatarColor: '#00C896' };
 
 export const CrmUsersPage = () => {
   const [users, setUsers] = useState<CrmUser[]>([]);
@@ -57,11 +57,13 @@ export const CrmUsersPage = () => {
   const [form, setForm] = useState<UserForm>(BLANK);
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<number | null>(null);
-  const [editForm, setEditForm] = useState<UserForm & { isActive: boolean }>({ ...BLANK, isActive: true });
+  const [editForm, setEditForm] = useState<Omit<UserForm, 'password'> & { newPassword: string; isActive: boolean }>({
+    name: '', email: '', newPassword: '', role: 'admin', avatarColor: '#00C896', isActive: true,
+  });
 
   const load = () => {
     setLoading(true);
-    fetch('/api/zappo/crm/users')
+    fetch('/api/zappo/users')
       .then((r) => r.json())
       .then((d) => setUsers(Array.isArray(d) ? d : []))
       .catch(() => {})
@@ -71,27 +73,30 @@ export const CrmUsersPage = () => {
   useEffect(() => { load(); }, []);
 
   const createUser = async () => {
-    if (!form.name.trim()) return;
+    if (!form.name.trim() || !form.email.trim() || !form.password) return;
     setSaving(true);
     try {
-      await fetch('/api/zappo/crm/users', {
+      const res = await fetch('/api/zappo/users', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
-      setShowNew(false);
-      setForm(BLANK);
-      load();
+      if (res.ok) { setShowNew(false); setForm(BLANK); load(); }
     } finally { setSaving(false); }
   };
 
   const saveUser = async (id: number) => {
     setSaving(true);
     try {
-      await fetch(`/api/zappo/crm/users/${id}`, {
+      const payload: any = {
+        name: editForm.name, email: editForm.email,
+        role: editForm.role, avatarColor: editForm.avatarColor, isActive: editForm.isActive,
+      };
+      if (editForm.newPassword) payload.password = editForm.newPassword;
+      await fetch(`/api/zappo/users/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(editForm),
+        body: JSON.stringify(payload),
       });
       setEditing(null);
       load();
@@ -99,7 +104,7 @@ export const CrmUsersPage = () => {
   };
 
   const toggleActive = async (user: CrmUser) => {
-    await fetch(`/api/zappo/crm/users/${user.id}`, {
+    await fetch(`/api/zappo/users/${user.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isActive: !user.isActive }),
@@ -108,22 +113,24 @@ export const CrmUsersPage = () => {
   };
 
   const deleteUser = async (id: number) => {
-    if (!confirm('Delete this user?')) return;
-    await fetch(`/api/zappo/crm/users/${id}`, { method: 'DELETE' });
+    if (!confirm('Delete this user? They will lose access immediately.')) return;
+    await fetch(`/api/zappo/users/${id}`, { method: 'DELETE' });
     load();
   };
 
   const startEdit = (u: CrmUser) => {
     setEditing(u.id);
-    setEditForm({ name: u.name, email: u.email ?? '', role: u.role, avatarColor: u.avatarColor, isActive: u.isActive });
+    setEditForm({ name: u.name, email: u.email ?? '', newPassword: '', role: u.role, avatarColor: u.avatarColor, isActive: u.isActive });
   };
+
+  const roleLabel = (role: string) => ROLES.find((r) => r.value === role)?.label ?? role;
 
   return (
     <div className={`${pageMargin} flex flex-col gap-6`}>
       <div className="flex items-center justify-between">
         <div>
-          <h2 className={heading2Style}>Users</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Team members you can assign to leads, plans, vendors, and meetings</p>
+          <h2 className={heading2Style}>Team Users</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">Login accounts for the operator dashboard — also assignable in CRM</p>
         </div>
         <Button variant="success" onClick={() => setShowNew(true)}>
           <Plus className="size-4 mr-2" /> Add User
@@ -138,23 +145,17 @@ export const CrmUsersPage = () => {
               <Avatar name={form.name || '?'} color={form.avatarColor} size="lg" />
               <div className="flex-1 grid grid-cols-2 gap-3">
                 <Input placeholder="Full name *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-                <Input placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                <Input placeholder="Email *" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+                <Input placeholder="Password *" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+                <select className="border border-input rounded-md px-3 py-2 text-sm bg-background" value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })}>
+                  {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+                </select>
               </div>
             </div>
-            <div className="flex items-center gap-4">
-              <select
-                className="border border-input rounded-md px-3 py-2 text-sm bg-background"
-                value={form.role}
-                onChange={(e) => setForm({ ...form, role: e.target.value })}
-              >
-                <option value="member">Member</option>
-                <option value="admin">Admin</option>
-              </select>
-              <ColorPicker value={form.avatarColor} onChange={(c) => setForm({ ...form, avatarColor: c })} />
-            </div>
+            <ColorPicker value={form.avatarColor} onChange={(c) => setForm({ ...form, avatarColor: c })} />
             <div className="flex gap-2 justify-end">
               <Button variant="outline" size="sm" onClick={() => { setShowNew(false); setForm(BLANK); }}>Cancel</Button>
-              <Button variant="success" size="sm" onClick={createUser} disabled={saving || !form.name.trim()}>
+              <Button variant="success" size="sm" onClick={createUser} disabled={saving || !form.name.trim() || !form.email.trim() || !form.password}>
                 {saving ? 'Saving…' : 'Add User'}
               </Button>
             </div>
@@ -173,21 +174,17 @@ export const CrmUsersPage = () => {
                   <Avatar name={editForm.name || '?'} color={editForm.avatarColor} size="lg" />
                   <div className="flex-1 grid grid-cols-2 gap-3">
                     <Input placeholder="Full name *" value={editForm.name} onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
-                    <Input placeholder="Email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
+                    <Input placeholder="Email *" type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} />
+                    <Input placeholder="New password (leave blank to keep)" type="password" value={editForm.newPassword} onChange={(e) => setEditForm({ ...editForm, newPassword: e.target.value })} />
+                    <select className="border border-input rounded-md px-3 py-2 text-sm bg-background" value={editForm.role} onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}>
+                      {ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
+                    </select>
                   </div>
                 </div>
                 <div className="flex items-center gap-4 flex-wrap">
-                  <select
-                    className="border border-input rounded-md px-3 py-2 text-sm bg-background"
-                    value={editForm.role}
-                    onChange={(e) => setEditForm({ ...editForm, role: e.target.value })}
-                  >
-                    <option value="member">Member</option>
-                    <option value="admin">Admin</option>
-                  </select>
-                  <label className="flex items-center gap-2 text-sm">
+                  <label className="flex items-center gap-2 text-sm cursor-pointer">
                     <input type="checkbox" checked={editForm.isActive} onChange={(e) => setEditForm({ ...editForm, isActive: e.target.checked })} />
-                    Active
+                    Active (can log in)
                   </label>
                   <ColorPicker value={editForm.avatarColor} onChange={(c) => setEditForm({ ...editForm, avatarColor: c })} />
                 </div>
@@ -204,33 +201,27 @@ export const CrmUsersPage = () => {
               <CardContent className="py-3 flex items-center gap-4">
                 <Avatar name={u.name} color={u.avatarColor} />
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 flex-wrap">
                     <p className="font-medium text-sm">{u.name}</p>
-                    <Badge variant={u.role === 'admin' ? 'default' : 'secondary'} className="text-xs">{u.role}</Badge>
+                    <Badge variant={u.role === 'super_admin' ? 'default' : 'secondary'} className="text-xs">{roleLabel(u.role)}</Badge>
                     {!u.isActive && <Badge variant="outline" className="text-xs text-muted-foreground">Inactive</Badge>}
                   </div>
                   {u.email && <p className="text-xs text-muted-foreground">{u.email}</p>}
                 </div>
                 <div className="flex items-center gap-1 shrink-0">
-                  <button
-                    title={u.isActive ? 'Deactivate' : 'Activate'}
+                  <button title={u.isActive ? 'Deactivate' : 'Activate'}
                     className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => toggleActive(u)}
-                  >
+                    onClick={() => toggleActive(u)}>
                     {u.isActive ? <UserCheck className="size-4" /> : <UserX className="size-4" />}
                   </button>
-                  <button
-                    title="Edit"
+                  <button title="Edit"
                     className="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
-                    onClick={() => startEdit(u)}
-                  >
+                    onClick={() => startEdit(u)}>
                     <Pencil className="size-4" />
                   </button>
-                  <button
-                    title="Delete"
+                  <button title="Delete"
                     className="p-1.5 rounded hover:bg-muted text-destructive hover:text-destructive/80 transition-colors"
-                    onClick={() => deleteUser(u.id)}
-                  >
+                    onClick={() => deleteUser(u.id)}>
                     <Trash2 className="size-4" />
                   </button>
                 </div>
@@ -239,7 +230,7 @@ export const CrmUsersPage = () => {
           )
         )}
         {!loading && users.length === 0 && (
-          <p className="text-sm text-muted-foreground">No users yet. Add your first team member.</p>
+          <p className="text-sm text-muted-foreground">No users yet. Add the first team member.</p>
         )}
       </div>
     </div>

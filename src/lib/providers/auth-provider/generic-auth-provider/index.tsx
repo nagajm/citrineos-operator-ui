@@ -22,7 +22,7 @@ import config from '@lib/utils/config';
 import { HasuraHeader, HasuraRole } from '@lib/utils/hasura.types';
 import { useLogin, type AuthProvider } from '@refinedev/core';
 import React, { useState } from 'react';
-import { signIn } from 'next-auth/react';
+import { signIn, getSession } from 'next-auth/react';
 
 /**
  * Configuration for the auth provider
@@ -225,9 +225,17 @@ export const createGenericAuthProvider = (
         };
       }
 
-      const mockToken = 'mock_token_' + Math.random().toString(36).slice(2);
-      saveToken(mockToken);
-      saveUser({ ...genericAdminUser, email });
+      const session = await getSession();
+      const su = (session?.user as any) ?? {};
+      saveToken('tok_' + Math.random().toString(36).slice(2));
+      saveUser({
+        id: su.id ?? '1',
+        name: su.name ?? 'Admin',
+        email: su.email ?? email,
+        roles: [su.role ?? 'admin'],
+        role: su.role ?? 'admin',
+        avatarColor: su.avatarColor ?? '#00C896',
+      });
 
       window.location.href = '/overview';
       return {

@@ -98,7 +98,7 @@ export interface CrmUser {
   id: number;
   name: string;
   email?: string;
-  role: 'admin' | 'member';
+  role: 'super_admin' | 'admin' | 'ops' | 'sales';
   avatarColor: string;
   isActive: boolean;
   createdAt: string;

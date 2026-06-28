@@ -40,10 +40,10 @@ import KeycloakProvider from 'next-auth/providers/keycloak';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import config from '@lib/utils/config';
 import { parseJwt } from '@lib/utils/jwt';
-import { genericAdminUser } from '@lib/providers/auth-provider/generic-auth-provider';
 
 const keycloakServerUrl = config.keycloakServerUrl || config.keycloakUrl;
 const authProvider = config.authProvider;
+const ZAPPO_API = process.env.ZAPPO_API_URL ?? process.env.VOLTSTATION_API_URL ?? 'http://65.0.157.6:3001/api/v1';
 
 /**
  * Refreshes an expired access token using the refresh token
@@ -120,17 +120,21 @@ const getProvider = () => {
     return CredentialsProvider({
       id: 'generic',
       credentials: {
-        username: { label: 'Username', type: 'text' },
+        username: { label: 'Email', type: 'email' },
         password: { label: 'Password', type: 'password' },
       },
-      async authorize(credentials, _req) {
-        if (
-          credentials &&
-          credentials.username === config.adminEmail &&
-          credentials.password === config.adminPassword
-        ) {
-          return genericAdminUser;
-        } else {
+      async authorize(credentials) {
+        try {
+          const res = await fetch(`${ZAPPO_API}/admin/auth/login`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ email: credentials?.username, password: credentials?.password }),
+          });
+          if (!res.ok) return null;
+          const user = await res.json();
+          if (!user?.id) return null;
+          return { id: String(user.id), name: user.name, email: user.email, role: user.role, avatarColor: user.avatarColor };
+        } catch {
           return null;
         }
       },
@@ -162,7 +166,13 @@ const authOptions: AuthOptions = {
       // Default to overview page for any other case
       return `${baseUrl}/overview`;
     },
-    async jwt({ token, account }) {
+    async jwt({ token, account, user }) {
+      // Generic provider: store role and avatar from the user object on first sign-in
+      if (user && !(user as any).accessToken) {
+        token.role = (user as any).role;
+        token.avatarColor = (user as any).avatarColor;
+      }
+
       // Initial sign in - store Keycloak tokens in JWT
       if (account) {
         token.accessToken = account.access_token;
@@ -205,6 +215,8 @@ const authOptions: AuthOptions = {
       if (session.user) {
         (session.user as any).roles = token.roles;
         (session.user as any).tenantId = token.tenantId;
+        (session.user as any).role = token.role;
+        (session.user as any).avatarColor = token.avatarColor;
       }
       (session as any).accessToken = token.accessToken;
       (session as any).idToken = token.idToken;

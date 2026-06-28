@@ -193,7 +193,7 @@ export const CrmPlansPage = () => {
 
   useEffect(() => {
     load();
-    fetch('/api/zappo/crm/users').then((r) => r.json()).then((d) => setUsers(Array.isArray(d) ? d : [])).catch(() => {});
+    fetch('/api/zappo/users').then((r) => r.json()).then((d) => setUsers(Array.isArray(d) ? d : [])).catch(() => {});
   }, []);
 
   const sorted = useMemo(() => sortPlans(plans, sortKey), [plans, sortKey]);
