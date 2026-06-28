@@ -97,15 +97,24 @@ export const CrmLeadsPage = () => {
     if (!form.name.trim()) return;
     setSaving(true);
     try {
-      await fetch('/api/zappo/crm/leads', {
+      const res = await fetch('/api/zappo/crm/leads', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...form,
-          expectedStations: form.expectedStations ? parseInt(form.expectedStations, 10) : undefined,
-          assigneeId: form.assigneeId,
+          name: form.name.trim(),
+          ...(form.phone && { phone: form.phone }),
+          ...(form.email && { email: form.email }),
+          ...(form.company && { company: form.company }),
+          ...(form.city && { city: form.city }),
+          ...(form.state && { state: form.state }),
+          ...(form.expectedStations && { expectedStations: parseInt(form.expectedStations, 10) }),
+          ...(form.source && { source: form.source }),
+          ...(form.notes && { notes: form.notes }),
+          ...(form.stationLocation && { stationLocation: form.stationLocation }),
+          ...(form.assigneeId != null && { assigneeId: form.assigneeId }),
         }),
       });
+      if (!res.ok) { alert(`Failed to save lead: ${(await res.json()).message}`); return; }
       setShowNew(false);
       setForm(BLANK);
       load();
