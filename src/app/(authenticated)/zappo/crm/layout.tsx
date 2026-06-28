@@ -10,6 +10,7 @@ const tabs = [
   { href: '/zappo/crm/meetings', label: 'Meetings' },
   { href: '/zappo/crm/plans', label: 'Plans' },
   { href: '/zappo/crm/documents', label: 'Documents' },
+  { href: '/zappo/crm/users', label: 'Users' },
 ];
 
 export default function CrmLayout({ children }: { children: React.ReactNode }) {

@@ -8,7 +8,7 @@ import { Badge } from '@lib/client/components/ui/badge';
 import { Input } from '@lib/client/components/ui/input';
 import { heading2Style, pageMargin } from '@lib/client/styles/page';
 import { Plus, Search, ChevronRight, CheckSquare } from 'lucide-react';
-import type { CrmLead, LeadStage } from '@lib/zappo/crm-types';
+import type { CrmLead, CrmUser, LeadStage } from '@lib/zappo/crm-types';
 
 const STAGE_LABELS: Record<LeadStage, string> = {
   new: 'New',
@@ -30,12 +30,19 @@ const STAGE_COLORS: Record<LeadStage, string> = {
   lost: 'destructive',
 };
 
-interface NewLeadForm {
-  name: string; phone: string; email: string; company: string; city: string; state: string;
-  expectedStations: string; source: string; notes: string;
+function initials(name: string) {
+  return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 }
 
-const BLANK: NewLeadForm = { name: '', phone: '', email: '', company: '', city: '', state: '', expectedStations: '', source: '', notes: '' };
+interface NewLeadForm {
+  name: string; phone: string; email: string; company: string; city: string; state: string;
+  expectedStations: string; source: string; notes: string; assigneeId: number | null;
+}
+
+const BLANK: NewLeadForm = {
+  name: '', phone: '', email: '', company: '', city: '', state: '',
+  expectedStations: '', source: '', notes: '', assigneeId: null,
+};
 
 export const CrmLeadsPage = () => {
   const router = useRouter();
@@ -47,6 +54,8 @@ export const CrmLeadsPage = () => {
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState<NewLeadForm>(BLANK);
   const [saving, setSaving] = useState(false);
+  const [users, setUsers] = useState<CrmUser[]>([]);
+  const [usersMap, setUsersMap] = useState<Record<number, CrmUser>>({});
 
   const load = (s = search, st = stageFilter) => {
     setLoading(true);
@@ -60,7 +69,20 @@ export const CrmLeadsPage = () => {
       .finally(() => setLoading(false));
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    fetch('/api/zappo/crm/users')
+      .then((r) => r.json())
+      .then((d: CrmUser[]) => {
+        if (Array.isArray(d)) {
+          setUsers(d);
+          const m: Record<number, CrmUser> = {};
+          d.forEach((u) => { m[u.id] = u; });
+          setUsersMap(m);
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   const handleSearch = (v: string) => { setSearch(v); load(v, stageFilter); };
   const handleStage = (v: string) => { setStageFilter(v); load(search, v); };
@@ -75,6 +97,7 @@ export const CrmLeadsPage = () => {
         body: JSON.stringify({
           ...form,
           expectedStations: form.expectedStations ? parseInt(form.expectedStations, 10) : undefined,
+          assigneeId: form.assigneeId,
         }),
       });
       setShowNew(false);
@@ -138,6 +161,14 @@ export const CrmLeadsPage = () => {
               </select>
             </div>
             <Input placeholder="Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+            <select
+              className="border border-input rounded-md px-3 py-2 text-sm bg-background"
+              value={form.assigneeId ?? ''}
+              onChange={(e) => setForm({ ...form, assigneeId: e.target.value ? Number(e.target.value) : null })}
+            >
+              <option value="">Assignee (optional)</option>
+              {users.filter((u) => u.isActive).map((u) => <option key={u.id} value={u.id}>{u.name}</option>)}
+            </select>
             <div className="flex gap-2 justify-end">
               <Button variant="outline" onClick={() => { setShowNew(false); setForm(BLANK); }}>Cancel</Button>
               <Button variant="success" onClick={createLead} disabled={saving || !form.name.trim()}>
@@ -151,25 +182,41 @@ export const CrmLeadsPage = () => {
       {loading && <p className="text-muted-foreground">Loading…</p>}
 
       <div className="flex flex-col gap-2">
-        {leads.map((lead) => (
-          <Card key={lead.id} className="cursor-pointer hover:shadow-sm transition-shadow" onClick={() => router.push(`/zappo/crm/leads/${lead.id}`)}>
-            <CardContent className="py-3 flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div>
-                  <p className="font-medium">{lead.name}</p>
-                  <p className="text-xs text-muted-foreground">{[lead.company, lead.city, lead.state].filter(Boolean).join(' · ')}</p>
+        {leads.map((lead) => {
+          const assignee = lead.assigneeId ? usersMap[lead.assigneeId] : null;
+          return (
+            <Card key={lead.id} className="cursor-pointer hover:shadow-sm transition-shadow" onClick={() => router.push(`/zappo/crm/leads/${lead.id}`)}>
+              <CardContent className="py-3 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div>
+                    <p className="font-medium">{lead.name}</p>
+                    <p className="text-xs text-muted-foreground">{[lead.company, lead.city, lead.state].filter(Boolean).join(' · ')}</p>
+                  </div>
+                  <Badge variant={STAGE_COLORS[lead.stage] as any}>{STAGE_LABELS[lead.stage]}</Badge>
+                  {lead.pendingTasks && lead.pendingTasks > 0 ? (
+                    <span className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
+                      <CheckSquare className="size-3" /> {lead.pendingTasks}
+                    </span>
+                  ) : null}
                 </div>
-                <Badge variant={STAGE_COLORS[lead.stage] as any}>{STAGE_LABELS[lead.stage]}</Badge>
-                {lead.pendingTasks && lead.pendingTasks > 0 ? (
-                  <span className="flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
-                    <CheckSquare className="size-3" /> {lead.pendingTasks}
-                  </span>
-                ) : null}
-              </div>
-              <ChevronRight className="size-4 text-muted-foreground" />
-            </CardContent>
-          </Card>
-        ))}
+                <div className="flex items-center gap-3">
+                  {assignee && (
+                    <span className="flex items-center gap-1.5 shrink-0">
+                      <span
+                        style={{ background: assignee.avatarColor }}
+                        className="w-6 h-6 rounded-full flex items-center justify-center text-[10px] font-bold text-black"
+                      >
+                        {initials(assignee.name)}
+                      </span>
+                      <span className="text-xs text-muted-foreground hidden md:inline">{assignee.name}</span>
+                    </span>
+                  )}
+                  <ChevronRight className="size-4 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
         {!loading && leads.length === 0 && (
           <p className="text-muted-foreground text-sm">No leads found.</p>
         )}

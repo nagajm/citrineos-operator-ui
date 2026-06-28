@@ -14,6 +14,7 @@ export interface CrmLead {
   notes?: string;
   convertedOperatorId?: string;
   pendingTasks?: number;
+  assigneeId?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -63,6 +64,7 @@ export interface Vendor {
   address?: string;
   notes?: string;
   isActive: boolean;
+  assigneeId?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -76,6 +78,7 @@ export interface MeetingNote {
   operatorId?: string;
   vendorId?: string;
   meetingAt?: string;
+  assigneeId?: number | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -86,6 +89,18 @@ export interface CrmPlan {
   description?: string;
   status: 'open' | 'in_progress' | 'done';
   dueAt?: string;
+  assigneeId?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CrmUser {
+  id: number;
+  name: string;
+  email?: string;
+  role: 'admin' | 'member';
+  avatarColor: string;
+  isActive: boolean;
   createdAt: string;
   updatedAt: string;
 }
