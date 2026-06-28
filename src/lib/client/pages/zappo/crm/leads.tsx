@@ -36,12 +36,12 @@ function initials(name: string) {
 
 interface NewLeadForm {
   name: string; phone: string; email: string; company: string; city: string; state: string;
-  expectedStations: string; source: string; notes: string; assigneeId: number | null;
+  expectedStations: string; source: string; notes: string; stationLocation: string; assigneeId: number | null;
 }
 
 const BLANK: NewLeadForm = {
   name: '', phone: '', email: '', company: '', city: '', state: '',
-  expectedStations: '', source: '', notes: '', assigneeId: null,
+  expectedStations: '', source: '', notes: '', stationLocation: '', assigneeId: null,
 };
 
 export const CrmLeadsPage = () => {
@@ -166,6 +166,7 @@ export const CrmLeadsPage = () => {
                 <option value="online">Online</option>
               </select>
             </div>
+            <Input placeholder="Station location (where they plan to install)" value={form.stationLocation} onChange={(e) => setForm({ ...form, stationLocation: e.target.value })} />
             <Input placeholder="Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
             <select
               className="border border-input rounded-md px-3 py-2 text-sm bg-background"

@@ -12,9 +12,29 @@ export interface CrmLead {
   source?: string;
   expectedStations?: number;
   notes?: string;
+  stationLocation?: string;
   convertedOperatorId?: string;
   pendingTasks?: number;
   assigneeId?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface QuotationItem {
+  description: string;
+  quantity: number;
+  unitPrice: number;
+}
+
+export interface Quotation {
+  id: number;
+  leadId: string;
+  title: string;
+  status: 'draft' | 'sent' | 'accepted' | 'rejected';
+  validUntil?: string | null;
+  notes?: string | null;
+  gstPercent: number;
+  items: QuotationItem[];
   createdAt: string;
   updatedAt: string;
 }

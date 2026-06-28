@@ -9,6 +9,7 @@ import { Input } from '@lib/client/components/ui/input';
 import { heading2Style, pageMargin } from '@lib/client/styles/page';
 import { ArrowLeft, Plus, Check, Circle, Trash2 } from 'lucide-react';
 import type { CrmLead, CrmTask, CrmComment, LeadStage } from '@lib/zappo/crm-types';
+import { QuotationSection } from './quotation-builder';
 
 const STAGE_OPTIONS: LeadStage[] = ['new', 'contacted', 'demo', 'proposal', 'onboarding', 'won', 'lost'];
 const STAGE_LABELS: Record<LeadStage, string> = { new: 'New', contacted: 'Contacted', demo: 'Demo', proposal: 'Proposal', onboarding: 'Onboarding', won: 'Won', lost: 'Lost' };
@@ -109,6 +110,7 @@ export const CrmLeadDetailPage = ({ id }: { id: string }) => {
           {lead.email && <><span className="text-muted-foreground">Email</span><span>{lead.email}</span></>}
           {lead.city && <><span className="text-muted-foreground">Location</span><span>{[lead.city, lead.state].filter(Boolean).join(', ')}</span></>}
           {lead.expectedStations && <><span className="text-muted-foreground">Expected stations</span><span>{lead.expectedStations}</span></>}
+          {lead.stationLocation && <><span className="text-muted-foreground">Station location</span><span>{lead.stationLocation}</span></>}
           {lead.source && <><span className="text-muted-foreground">Source</span><span>{lead.source}</span></>}
           {lead.notes && <><span className="text-muted-foreground col-span-2">Notes</span><span className="col-span-2 whitespace-pre-wrap">{lead.notes}</span></>}
         </CardContent>
@@ -160,6 +162,9 @@ export const CrmLeadDetailPage = ({ id }: { id: string }) => {
           {lead.comments.length === 0 && <p className="text-sm text-muted-foreground">No comments yet.</p>}
         </div>
       </div>
+
+      {/* Quotations */}
+      <QuotationSection leadId={id} leadName={lead.name} />
     </div>
   );
 };
