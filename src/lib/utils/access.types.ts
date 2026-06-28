@@ -24,6 +24,8 @@ export type User = {
   name: string;
   email?: string;
   roles: string[];
+  role?: string;
+  avatarColor?: string;
 };
 
 export enum ResourceType {
