@@ -22,7 +22,7 @@ function domain(url: string) {
 }
 
 // ─── link row inside the form ─────────────────────────────────────────────────
-interface LinkRow { label: string; url: string; }
+interface LinkRow { label?: string; url: string; }
 
 function LinkInput({ row, onChange, onRemove }: {
   row: LinkRow;
