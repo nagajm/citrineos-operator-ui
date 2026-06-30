@@ -21,20 +21,30 @@ export interface CrmLead {
 }
 
 export interface QuotationItem {
+  id?: string;
   description: string;
-  quantity: number;
+  hsnCode?: string;
+  unit: string;
+  qty: number;
+  unitCost?: number | null;
   unitPrice: number;
+  gstPercent: number;
+  showInPdf: boolean;
+  order?: number;
 }
 
 export interface Quotation {
   id: number;
   leadId: string;
+  quotationNumber?: string;
   title: string;
   status: 'draft' | 'sent' | 'accepted' | 'rejected';
   validUntil?: string | null;
   notes?: string | null;
-  gstPercent: number;
+  termsAndConditions?: string | null;
+  discountPercent: number;
   items: QuotationItem[];
+  pdfPath?: string | null;
   createdAt: string;
   updatedAt: string;
 }
