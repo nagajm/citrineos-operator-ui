@@ -9,7 +9,8 @@ const tabs = [
   { href: '/zappo/crm/vendors', label: 'Vendors' },
   { href: '/zappo/crm/meetings', label: 'Meetings' },
   { href: '/zappo/crm/plans', label: 'Plans' },
-  { href: '/zappo/crm/documents', label: 'Documents' },
+  { href: '/zappo/crm/knowledge-base', label: 'Knowledge Base' },
+  { href: '/zappo/crm/tags', label: 'Tags' },
   { href: '/zappo/crm/users', label: 'Users' },
 ];
 

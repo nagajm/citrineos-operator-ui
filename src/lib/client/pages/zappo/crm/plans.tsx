@@ -6,8 +6,9 @@ import { Card, CardContent } from '@lib/client/components/ui/card';
 import { Badge } from '@lib/client/components/ui/badge';
 import { Input } from '@lib/client/components/ui/input';
 import { heading2Style, pageMargin } from '@lib/client/styles/page';
-import { Plus, Check, Circle, Clock, LayoutList, LayoutGrid, ArrowUpDown } from 'lucide-react';
-import type { CrmPlan, CrmUser } from '@lib/zappo/crm-types';
+import Link from 'next/link';
+import { Plus, Check, Circle, Clock, LayoutList, LayoutGrid, ArrowUpDown, Tag, Settings2, Trash2 } from 'lucide-react';
+import type { CrmPlan, CrmTag, CrmUser } from '@lib/zappo/crm-types';
 
 const STATUS_OPTIONS = ['open', 'in_progress', 'done'] as const;
 type Status = typeof STATUS_OPTIONS[number];
@@ -71,6 +72,17 @@ function AssigneeChip({ user }: { user: CrmUser }) {
   );
 }
 
+function TagPill({ tag }: { tag: CrmTag }) {
+  return (
+    <span
+      className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium text-white"
+      style={{ background: tag.color }}
+    >
+      {tag.name}
+    </span>
+  );
+}
+
 // ─── shared plan card ──────────────────────────────────────────────────────────
 function PlanCard({
   plan, onEdit, onDelete, compact, usersMap,
@@ -82,6 +94,7 @@ function PlanCard({
   usersMap: Record<number, CrmUser>;
 }) {
   const assignee = plan.assigneeId ? usersMap[plan.assigneeId] : null;
+  const tags = plan.tags ?? [];
   return (
     <Card className="shadow-none">
       <CardContent className={`${compact ? 'py-3 px-4' : 'py-3'} flex items-start justify-between gap-3`}>
@@ -91,6 +104,11 @@ function PlanCard({
             <p className="font-medium text-sm leading-snug">{plan.title}</p>
             {!compact && plan.description && (
               <p className="text-xs text-muted-foreground mt-0.5 whitespace-pre-wrap line-clamp-2">{plan.description}</p>
+            )}
+            {tags.length > 0 && (
+              <div className="flex flex-wrap gap-1 mt-1.5">
+                {tags.map((t) => <TagPill key={t.id} tag={t} />)}
+              </div>
             )}
             <div className="flex items-center gap-3 mt-1">
               {plan.dueAt && <p className="text-xs text-muted-foreground">Due: {formatDue(plan.dueAt)}</p>}
@@ -112,10 +130,12 @@ function PlanCard({
   );
 }
 
+
+
 // ─── inline edit / create form ────────────────────────────────────────────────
-interface PlanFormState { title: string; description: string; status: string; dueAt: string; assigneeId: number | null; }
+interface PlanFormState { title: string; description: string; status: string; dueAt: string; assigneeId: number | null; tagIds: string[]; }
 function EditForm({
-  form, onChange, onSave, onCancel, saving, users,
+  form, onChange, onSave, onCancel, saving, users, tags,
 }: {
   form: PlanFormState;
   onChange: (f: PlanFormState) => void;
@@ -123,7 +143,12 @@ function EditForm({
   onCancel: () => void;
   saving: boolean;
   users: CrmUser[];
+  tags: CrmTag[];
 }) {
+  const toggleTag = (id: string) => {
+    const next = form.tagIds.includes(id) ? form.tagIds.filter((t) => t !== id) : [...form.tagIds, id];
+    onChange({ ...form, tagIds: next });
+  };
   return (
     <Card className="border-dashed">
       <CardContent className="py-4 flex flex-col gap-3">
@@ -134,6 +159,29 @@ function EditForm({
           onChange={(e) => onChange({ ...form, description: e.target.value })}
           placeholder="Description…"
         />
+        {tags.length > 0 && (
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1.5 flex items-center gap-1">
+              <Tag className="size-3" /> Tags
+            </p>
+            <div className="flex flex-wrap gap-1.5">
+              {tags.map((t) => {
+                const active = form.tagIds.includes(t.id);
+                return (
+                  <button
+                    key={t.id}
+                    type="button"
+                    onClick={() => toggleTag(t.id)}
+                    className={`px-2.5 py-0.5 rounded-full border text-[11px] font-medium text-white transition-all ${active ? 'ring-2 ring-offset-1 ring-foreground/30' : 'opacity-40 hover:opacity-70'}`}
+                    style={{ background: t.color, borderColor: t.color }}
+                  >
+                    {t.name}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
         <div className="grid grid-cols-2 gap-3">
           <select className="border border-input rounded-md px-3 py-2 text-sm bg-background" value={form.status} onChange={(e) => onChange({ ...form, status: e.target.value })}>
             {STATUS_OPTIONS.map((s) => <option key={s} value={s}>{STATUS_LABELS[s]}</option>)}
@@ -159,13 +207,15 @@ function EditForm({
   );
 }
 
-const BLANK_FORM: PlanFormState = { title: '', description: '', dueAt: '', status: 'open', assigneeId: null };
+const BLANK_FORM: PlanFormState = { title: '', description: '', dueAt: '', status: 'open', assigneeId: null, tagIds: [] };
 
 // ─── main page ─────────────────────────────────────────────────────────────────
 export const CrmPlansPage = () => {
   const [plans, setPlans] = useState<CrmPlan[]>([]);
+  const [tags, setTags] = useState<CrmTag[]>([]);
   const [users, setUsers] = useState<CrmUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [filterTagId, setFilterTagId] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [sortKey, setSortKey] = useState<SortKey>('dueAt_asc');
   const [view, setView] = useState<'list' | 'kanban'>('list');
@@ -181,10 +231,12 @@ export const CrmPlansPage = () => {
     return m;
   }, [users]);
 
-  const load = (s = filterStatus) => {
+  const loadTags = () =>
+    fetch('/api/zappo/crm/tags').then((r) => r.json()).then((d) => setTags(Array.isArray(d) ? d : [])).catch(() => {});
+
+  const load = () => {
     setLoading(true);
-    const qs = s ? `?status=${s}` : '';
-    fetch(`/api/zappo/crm/plans${qs}`)
+    fetch('/api/zappo/crm/plans')
       .then((r) => r.json())
       .then((d) => setPlans(Array.isArray(d) ? d : []))
       .catch(() => {})
@@ -193,18 +245,22 @@ export const CrmPlansPage = () => {
 
   useEffect(() => {
     load();
+    loadTags();
     fetch('/api/zappo/users').then((r) => r.json()).then((d) => setUsers(Array.isArray(d) ? d : [])).catch(() => {});
   }, []);
 
-  const sorted = useMemo(() => sortPlans(plans, sortKey), [plans, sortKey]);
+  const filtered = useMemo(() => {
+    let list = plans;
+    if (filterTagId) list = list.filter((p) => (p.tags ?? []).some((t) => t.id === filterTagId));
+    if (filterStatus) list = list.filter((p) => p.status === filterStatus);
+    return sortPlans(list, sortKey);
+  }, [plans, filterTagId, filterStatus, sortKey]);
 
   const byStatus = useMemo(() => {
     const m: Record<Status, CrmPlan[]> = { open: [], in_progress: [], done: [] };
-    sortPlans(plans, sortKey).forEach((p) => {
-      if (p.status in m) m[p.status as Status].push(p);
-    });
+    filtered.forEach((p) => { if (p.status in m) m[p.status as Status].push(p); });
     return m;
-  }, [plans, sortKey]);
+  }, [filtered]);
 
   const createPlan = async () => {
     if (!form.title.trim()) return;
@@ -247,11 +303,14 @@ export const CrmPlansPage = () => {
       status: plan.status,
       dueAt: plan.dueAt ? plan.dueAt.slice(0, 10) : '',
       assigneeId: plan.assigneeId ?? null,
+      tagIds: (plan.tags ?? []).map((t) => t.id),
     });
   };
 
+  const activeTag = tags.find((t) => t.id === filterTagId);
+
   return (
-    <div className={`${pageMargin} flex flex-col gap-6`}>
+    <div className={`${pageMargin} flex flex-col gap-4`}>
       {/* header */}
       <div className="flex items-center justify-between">
         <h2 className={heading2Style}>Plans</h2>
@@ -260,14 +319,41 @@ export const CrmPlansPage = () => {
         </Button>
       </div>
 
-      {/* toolbar */}
+      {/* ── tag filter row ───────────────────────────────────────────────────── */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <Tag className="size-3.5 text-muted-foreground shrink-0" />
+        <button
+          onClick={() => setFilterTagId('')}
+          className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${filterTagId === '' ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-input text-muted-foreground hover:border-primary/50'}`}
+        >
+          All
+        </button>
+        {tags.map((t) => (
+          <button
+            key={t.id}
+            onClick={() => setFilterTagId(filterTagId === t.id ? '' : t.id)}
+            className={`px-3 py-1 rounded-full border text-xs font-medium text-white transition-all ${filterTagId === t.id ? 'ring-2 ring-offset-1 ring-foreground/30' : 'opacity-60 hover:opacity-90'}`}
+            style={{ background: t.color, borderColor: t.color }}
+          >
+            {t.name}
+          </button>
+        ))}
+        <Link
+          href="/zappo/crm/tags"
+          className="ml-auto flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <Settings2 className="size-3.5" /> Manage tags
+        </Link>
+      </div>
+
+      {/* ── status filter + sort + view toggle ──────────────────────────────── */}
       <div className="flex flex-wrap items-center gap-2">
         {view === 'list' && (['', ...STATUS_OPTIONS] as const).map((s) => (
           <Button
             key={s}
             variant={filterStatus === s ? 'default' : 'outline'}
             size="sm"
-            onClick={() => { setFilterStatus(s); load(s); }}
+            onClick={() => setFilterStatus(s)}
           >
             {s === '' ? 'All' : STATUS_LABELS[s]}
           </Button>
@@ -313,6 +399,7 @@ export const CrmPlansPage = () => {
           onCancel={() => { setShowNew(false); setForm(BLANK_FORM); }}
           saving={saving}
           users={users}
+          tags={tags}
         />
       )}
 
@@ -321,7 +408,7 @@ export const CrmPlansPage = () => {
       {/* ── LIST VIEW ── */}
       {!loading && view === 'list' && (
         <div className="flex flex-col gap-2">
-          {sorted.map((plan) =>
+          {filtered.map((plan) =>
             editing === plan.id ? (
               <EditForm
                 key={plan.id}
@@ -331,12 +418,17 @@ export const CrmPlansPage = () => {
                 onCancel={() => setEditing(null)}
                 saving={saving}
                 users={users}
+                tags={tags}
               />
             ) : (
               <PlanCard key={plan.id} plan={plan} onEdit={startEdit} onDelete={deletePlan} usersMap={usersMap} />
             )
           )}
-          {sorted.length === 0 && <p className="text-sm text-muted-foreground">No plans yet.</p>}
+          {filtered.length === 0 && (
+            <p className="text-sm text-muted-foreground">
+              No plans{activeTag ? ` tagged "${activeTag.name}"` : ''}.
+            </p>
+          )}
         </div>
       )}
 
@@ -363,6 +455,7 @@ export const CrmPlansPage = () => {
                     onCancel={() => setEditing(null)}
                     saving={saving}
                     users={users}
+                    tags={tags}
                   />
                 ) : (
                   <PlanCard key={plan.id} plan={plan} onEdit={startEdit} onDelete={deletePlan} compact usersMap={usersMap} />

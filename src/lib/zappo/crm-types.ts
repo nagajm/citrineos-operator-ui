@@ -64,10 +64,14 @@ export interface CrmComment {
 
 export interface CrmDocument {
   id: string;
+  type: 'file' | 'url' | 'text';
   name: string;
-  filename: string;
+  description?: string;
+  filename?: string;
   mimeType?: string;
   size?: number;
+  url?: string;
+  content?: string;
   leadId?: string;
   operatorId?: string;
   vendorId?: string;
@@ -103,6 +107,13 @@ export interface MeetingNote {
   updatedAt: string;
 }
 
+export interface CrmTag {
+  id: string;
+  name: string;
+  color: string;
+  createdAt: string;
+}
+
 export interface CrmPlan {
   id: string;
   title: string;
@@ -110,6 +121,7 @@ export interface CrmPlan {
   status: 'open' | 'in_progress' | 'done';
   dueAt?: string;
   assigneeId?: number | null;
+  tags?: CrmTag[];
   createdAt: string;
   updatedAt: string;
 }
