@@ -15,17 +15,18 @@ export async function GET(req: NextRequest, ctx: RouteContext) {
   const url = upstream(path, req.nextUrl.searchParams.toString());
   const res = await fetch(url, { headers: { 'x-admin-key': KEY }, cache: 'no-store' });
 
-  // Document download — stream binary response through
+  // Binary response — stream through (images, PDFs, file downloads)
   const ct = res.headers.get('content-type') ?? '';
   if (!ct.includes('application/json')) {
     const body = await res.blob();
-    return new NextResponse(body, {
-      status: res.status,
-      headers: {
-        'content-type': ct,
-        'content-disposition': res.headers.get('content-disposition') ?? 'attachment',
-      },
-    });
+    const isImage = ct.startsWith('image/');
+    const headers: Record<string, string> = { 'content-type': ct };
+    const cd = res.headers.get('content-disposition');
+    if (cd) headers['content-disposition'] = cd;
+    else if (!isImage) headers['content-disposition'] = 'attachment';
+    const cc = res.headers.get('cache-control');
+    if (cc) headers['cache-control'] = cc;
+    return new NextResponse(body, { status: res.status, headers });
   }
 
   const data = await res.json();

@@ -146,6 +146,49 @@ export interface CrmPlan {
   updatedAt: string;
 }
 
+export interface CrmProductSection {
+  id?: string;
+  productId?: string;
+  title: string;
+  body?: string;
+  order: number;
+  createdAt?: string;
+}
+
+export interface CrmProductBomItem {
+  id?: string;
+  productId?: string;
+  description: string;
+  hsnCode?: string;
+  unit: string;
+  qty: number;
+  unitCost?: number | null;
+  unitPrice: number;
+  gstPercent: number;
+  order: number;
+  createdAt?: string;
+}
+
+export interface CrmProduct {
+  id: string;
+  name: string;
+  sku?: string;
+  description?: string;
+  imageFilePath?: string;
+  bomVisibility: 'private' | 'public';
+  isActive: boolean;
+  itemCount?: number;
+  totalPrice?: number;
+  totalCost?: number | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ProductWithDetails extends CrmProduct {
+  sections: CrmProductSection[];
+  bomItems: CrmProductBomItem[];
+}
+
 export interface CrmUser {
   id: number;
   name: string;
