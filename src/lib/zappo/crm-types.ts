@@ -78,6 +78,26 @@ export interface CrmDocument {
   createdAt: string;
 }
 
+export interface KnowledgeFile {
+  id: string;
+  knowledgeId: string;
+  name: string;
+  filename: string;
+  mimeType?: string;
+  size?: number;
+  createdAt: string;
+}
+
+export interface KnowledgeEntry {
+  id: string;
+  title: string;
+  content?: string;
+  links: Array<{ label?: string; url: string }>;
+  files: KnowledgeFile[];
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Vendor {
   id: string;
   name: string;
