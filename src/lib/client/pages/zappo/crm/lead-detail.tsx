@@ -168,14 +168,14 @@ export const CrmLeadDetailPage = ({ id }: { id: string }) => {
             </div>
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-sm">
-              {lead.company && <div><p className="text-[11px] font-semibold uppercase tracking-wide text-primary mb-1 opacity-70">Company</p><p className="font-medium">{lead.company}</p></div>}
-              {lead.phone && <div><p className="text-[11px] font-semibold uppercase tracking-wide text-primary mb-1 opacity-70">Phone</p><p className="font-medium">{lead.phone}</p></div>}
-              {lead.email && <div><p className="text-[11px] font-semibold uppercase tracking-wide text-primary mb-1 opacity-70">Email</p><p className="font-medium">{lead.email}</p></div>}
-              {lead.city && <div><p className="text-[11px] font-semibold uppercase tracking-wide text-primary mb-1 opacity-70">Location</p><p className="font-medium">{[lead.city, lead.state].filter(Boolean).join(', ')}</p></div>}
-              {lead.expectedStations && <div><p className="text-[11px] font-semibold uppercase tracking-wide text-primary mb-1 opacity-70">Expected stations</p><p className="font-medium">{lead.expectedStations}</p></div>}
-              {lead.source && <div><p className="text-[11px] font-semibold uppercase tracking-wide text-primary mb-1 opacity-70">Source</p><p className="font-medium">{lead.source}</p></div>}
-              {lead.stationLocation && <div className="col-span-2 md:col-span-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-primary mb-1 opacity-70">Station location</p><p className="font-medium">{lead.stationLocation}</p></div>}
-              {lead.notes && <div className="col-span-2 md:col-span-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-primary mb-1 opacity-70">Notes</p><p className="whitespace-pre-wrap">{lead.notes}</p></div>}
+              {lead.company && <div><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Company</p><p className="font-medium">{lead.company}</p></div>}
+              {lead.phone && <div><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Phone</p><p className="font-medium">{lead.phone}</p></div>}
+              {lead.email && <div><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Email</p><p className="font-medium">{lead.email}</p></div>}
+              {lead.city && <div><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Location</p><p className="font-medium">{[lead.city, lead.state].filter(Boolean).join(', ')}</p></div>}
+              {lead.expectedStations && <div><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Expected stations</p><p className="font-medium">{lead.expectedStations}</p></div>}
+              {lead.source && <div><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Source</p><p className="font-medium">{lead.source}</p></div>}
+              {lead.stationLocation && <div className="col-span-2 md:col-span-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Station location</p><p className="font-medium">{lead.stationLocation}</p></div>}
+              {lead.notes && <div className="col-span-2 md:col-span-3"><p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-1">Notes</p><p className="whitespace-pre-wrap">{lead.notes}</p></div>}
             </div>
           )}
         </CardContent>
