@@ -217,6 +217,7 @@ export const CrmPlansPage = () => {
   const [loading, setLoading] = useState(true);
   const [filterTagId, setFilterTagId] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
+  const [filterUserId, setFilterUserId] = useState<number | ''>('');
   const [sortKey, setSortKey] = useState<SortKey>('dueAt_asc');
   const [view, setView] = useState<'list' | 'kanban'>('list');
   const [showNew, setShowNew] = useState(false);
@@ -253,8 +254,9 @@ export const CrmPlansPage = () => {
     let list = plans;
     if (filterTagId) list = list.filter((p) => (p.tags ?? []).some((t) => t.id === filterTagId));
     if (filterStatus) list = list.filter((p) => p.status === filterStatus);
+    if (filterUserId !== '') list = list.filter((p) => p.assigneeId === filterUserId);
     return sortPlans(list, sortKey);
-  }, [plans, filterTagId, filterStatus, sortKey]);
+  }, [plans, filterTagId, filterStatus, filterUserId, sortKey]);
 
   const byStatus = useMemo(() => {
     const m: Record<Status, CrmPlan[]> = { open: [], in_progress: [], done: [] };
@@ -360,6 +362,18 @@ export const CrmPlansPage = () => {
         ))}
 
         <div className="ml-auto flex items-center gap-2">
+          {users.filter((u) => u.isActive).length > 0 && (
+            <select
+              className="text-sm border border-input rounded-md px-2 py-1 bg-background outline-none cursor-pointer"
+              value={filterUserId}
+              onChange={(e) => setFilterUserId(e.target.value ? Number(e.target.value) : '')}
+            >
+              <option value="">All assignees</option>
+              {users.filter((u) => u.isActive).map((u) => (
+                <option key={u.id} value={u.id}>{u.name}</option>
+              ))}
+            </select>
+          )}
           <div className="flex items-center gap-1.5 border border-input rounded-md px-2 py-1 bg-background">
             <ArrowUpDown className="size-3.5 text-muted-foreground" />
             <select
