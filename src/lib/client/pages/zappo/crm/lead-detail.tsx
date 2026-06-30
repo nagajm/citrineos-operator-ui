@@ -150,30 +150,32 @@ export const CrmLeadDetailPage = ({ id }: { id: string }) => {
         <CardContent className="py-4">
           {editing ? (
             <div className="grid grid-cols-2 gap-3">
-              <Input placeholder="Name *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-              <Input placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-              <Input placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
-              <Input placeholder="Company" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
-              <Input placeholder="City" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
-              <Input placeholder="State" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} />
-              <Input placeholder="Expected stations" type="number" value={form.expectedStations} onChange={(e) => setForm({ ...form, expectedStations: e.target.value })} />
-              <select className="border border-input rounded-md px-3 py-2 text-sm bg-background" value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })}>
-                <option value="">Source…</option>
-                {SOURCE_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
-              </select>
-              <Input placeholder="Station location" value={form.stationLocation} onChange={(e) => setForm({ ...form, stationLocation: e.target.value })} className="col-span-2" />
-              <textarea className="col-span-2 border border-input rounded-md p-3 text-sm bg-background resize-none min-h-[70px]" placeholder="Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+              <label className="flex flex-col gap-1 text-xs text-muted-foreground">Name *<Input placeholder="Name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></label>
+              <label className="flex flex-col gap-1 text-xs text-muted-foreground">Phone<Input placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} /></label>
+              <label className="flex flex-col gap-1 text-xs text-muted-foreground">Email<Input placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></label>
+              <label className="flex flex-col gap-1 text-xs text-muted-foreground">Company<Input placeholder="Company" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} /></label>
+              <label className="flex flex-col gap-1 text-xs text-muted-foreground">City<Input placeholder="City" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} /></label>
+              <label className="flex flex-col gap-1 text-xs text-muted-foreground">State<Input placeholder="State" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} /></label>
+              <label className="flex flex-col gap-1 text-xs text-muted-foreground">Expected stations<Input placeholder="e.g. 2" type="number" value={form.expectedStations} onChange={(e) => setForm({ ...form, expectedStations: e.target.value })} /></label>
+              <label className="flex flex-col gap-1 text-xs text-muted-foreground">Source
+                <select className="border border-input rounded-md px-3 py-2 text-sm bg-background" value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })}>
+                  <option value="">Select…</option>
+                  {SOURCE_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+                </select>
+              </label>
+              <label className="flex flex-col gap-1 text-xs text-muted-foreground col-span-2">Station location<Input placeholder="e.g. Near Saravana Bhavan Hotel" value={form.stationLocation} onChange={(e) => setForm({ ...form, stationLocation: e.target.value })} /></label>
+              <label className="flex flex-col gap-1 text-xs text-muted-foreground col-span-2">Notes<textarea className="border border-input rounded-md p-3 text-sm bg-background resize-none min-h-[70px]" placeholder="Notes…" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} /></label>
             </div>
           ) : (
-            <div className="grid grid-cols-2 gap-3 text-sm">
-              {lead.company && <><span className="text-muted-foreground">Company</span><span>{lead.company}</span></>}
-              {lead.phone && <><span className="text-muted-foreground">Phone</span><span>{lead.phone}</span></>}
-              {lead.email && <><span className="text-muted-foreground">Email</span><span>{lead.email}</span></>}
-              {lead.city && <><span className="text-muted-foreground">Location</span><span>{[lead.city, lead.state].filter(Boolean).join(', ')}</span></>}
-              {lead.expectedStations && <><span className="text-muted-foreground">Expected stations</span><span>{lead.expectedStations}</span></>}
-              {lead.stationLocation && <><span className="text-muted-foreground">Station location</span><span>{lead.stationLocation}</span></>}
-              {lead.source && <><span className="text-muted-foreground">Source</span><span>{lead.source}</span></>}
-              {lead.notes && <><span className="text-muted-foreground col-span-2">Notes</span><span className="col-span-2 whitespace-pre-wrap">{lead.notes}</span></>}
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-x-6 gap-y-4 text-sm">
+              {lead.company && <div><p className="text-xs text-muted-foreground mb-0.5">Company</p><p className="font-medium">{lead.company}</p></div>}
+              {lead.phone && <div><p className="text-xs text-muted-foreground mb-0.5">Phone</p><p className="font-medium">{lead.phone}</p></div>}
+              {lead.email && <div><p className="text-xs text-muted-foreground mb-0.5">Email</p><p className="font-medium">{lead.email}</p></div>}
+              {lead.city && <div><p className="text-xs text-muted-foreground mb-0.5">Location</p><p className="font-medium">{[lead.city, lead.state].filter(Boolean).join(', ')}</p></div>}
+              {lead.expectedStations && <div><p className="text-xs text-muted-foreground mb-0.5">Expected stations</p><p className="font-medium">{lead.expectedStations}</p></div>}
+              {lead.source && <div><p className="text-xs text-muted-foreground mb-0.5">Source</p><p className="font-medium">{lead.source}</p></div>}
+              {lead.stationLocation && <div className="col-span-2 md:col-span-3"><p className="text-xs text-muted-foreground mb-0.5">Station location</p><p className="font-medium">{lead.stationLocation}</p></div>}
+              {lead.notes && <div className="col-span-2 md:col-span-3"><p className="text-xs text-muted-foreground mb-0.5">Notes</p><p className="whitespace-pre-wrap">{lead.notes}</p></div>}
             </div>
           )}
         </CardContent>
