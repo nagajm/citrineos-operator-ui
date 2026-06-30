@@ -13,13 +13,17 @@ import { QuotationSection } from './quotation-builder';
 
 const STAGE_OPTIONS: LeadStage[] = ['new', 'contacted', 'demo', 'proposal', 'onboarding', 'won', 'lost'];
 const STAGE_LABELS: Record<LeadStage, string> = { new: 'New', contacted: 'Contacted', demo: 'Demo', proposal: 'Proposal', onboarding: 'Onboarding', won: 'Won', lost: 'Lost' };
+const SOURCE_OPTIONS = ['referral', 'outbound', 'inbound', 'event', 'online', 'website', 'cold_call', 'walk_in', 'other'];
 
 interface LeadDetail extends CrmLead { tasks: CrmTask[]; comments: CrmComment[]; }
+interface LeadForm { name: string; phone: string; email: string; company: string; city: string; state: string; expectedStations: string; source: string; stationLocation: string; notes: string; }
 
 export const CrmLeadDetailPage = ({ id }: { id: string }) => {
   const router = useRouter();
   const [lead, setLead] = useState<LeadDetail | null>(null);
   const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState<LeadForm>({ name: '', phone: '', email: '', company: '', city: '', state: '', expectedStations: '', source: '', stationLocation: '', notes: '' });
   const [comment, setComment] = useState('');
   const [taskTitle, setTaskTitle] = useState('');
   const [taskDue, setTaskDue] = useState('');
@@ -29,8 +33,35 @@ export const CrmLeadDetailPage = ({ id }: { id: string }) => {
     setLoading(true);
     fetch(`/api/zappo/crm/leads/${id}`)
       .then((r) => r.json())
-      .then((d) => setLead(d))
+      .then((d) => {
+        setLead(d);
+        setForm({
+          name: d.name ?? '', phone: d.phone ?? '', email: d.email ?? '',
+          company: d.company ?? '', city: d.city ?? '', state: d.state ?? '',
+          expectedStations: d.expectedStations ? String(d.expectedStations) : '',
+          source: d.source ?? '', stationLocation: d.stationLocation ?? '', notes: d.notes ?? '',
+        });
+      })
       .finally(() => setLoading(false));
+  };
+
+  const saveLead = async () => {
+    setSaving(true);
+    try {
+      const body: Record<string, any> = { name: form.name.trim() };
+      if (form.phone) body.phone = form.phone;
+      if (form.email) body.email = form.email;
+      if (form.company) body.company = form.company;
+      if (form.city) body.city = form.city;
+      if (form.state) body.state = form.state;
+      if (form.expectedStations) body.expectedStations = parseInt(form.expectedStations, 10);
+      if (form.source) body.source = form.source;
+      if (form.stationLocation) body.stationLocation = form.stationLocation;
+      if (form.notes) body.notes = form.notes;
+      await fetch(`/api/zappo/crm/leads/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+      setEditing(false);
+      load();
+    } finally { setSaving(false); }
   };
 
   useEffect(() => { load(); }, [id]);
@@ -88,9 +119,21 @@ export const CrmLeadDetailPage = ({ id }: { id: string }) => {
           <ArrowLeft className="size-4 mr-1" /> Back
         </Button>
         <h2 className={`${heading2Style} flex-1`}>{lead.name}</h2>
-        <Button variant="ghost" size="sm" onClick={deleteLead} className="text-destructive hover:text-destructive hover:bg-destructive/10">
-          <Trash2 className="size-4 mr-1" /> Delete Lead
-        </Button>
+        {editing ? (
+          <>
+            <Button variant="outline" size="sm" onClick={() => setEditing(false)}>Cancel</Button>
+            <Button variant="success" size="sm" onClick={saveLead} disabled={saving || !form.name.trim()}>
+              {saving ? 'Saving…' : 'Save'}
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button variant="outline" size="sm" onClick={() => setEditing(true)}>Edit</Button>
+            <Button variant="ghost" size="sm" onClick={deleteLead} className="text-destructive hover:text-destructive hover:bg-destructive/10">
+              <Trash2 className="size-4 mr-1" /> Delete
+            </Button>
+          </>
+        )}
       </div>
 
       {/* Stage selector */}
@@ -104,15 +147,35 @@ export const CrmLeadDetailPage = ({ id }: { id: string }) => {
 
       {/* Details */}
       <Card>
-        <CardContent className="py-4 grid grid-cols-2 gap-3 text-sm">
-          {lead.company && <><span className="text-muted-foreground">Company</span><span>{lead.company}</span></>}
-          {lead.phone && <><span className="text-muted-foreground">Phone</span><span>{lead.phone}</span></>}
-          {lead.email && <><span className="text-muted-foreground">Email</span><span>{lead.email}</span></>}
-          {lead.city && <><span className="text-muted-foreground">Location</span><span>{[lead.city, lead.state].filter(Boolean).join(', ')}</span></>}
-          {lead.expectedStations && <><span className="text-muted-foreground">Expected stations</span><span>{lead.expectedStations}</span></>}
-          {lead.stationLocation && <><span className="text-muted-foreground">Station location</span><span>{lead.stationLocation}</span></>}
-          {lead.source && <><span className="text-muted-foreground">Source</span><span>{lead.source}</span></>}
-          {lead.notes && <><span className="text-muted-foreground col-span-2">Notes</span><span className="col-span-2 whitespace-pre-wrap">{lead.notes}</span></>}
+        <CardContent className="py-4">
+          {editing ? (
+            <div className="grid grid-cols-2 gap-3">
+              <Input placeholder="Name *" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+              <Input placeholder="Phone" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value })} />
+              <Input placeholder="Email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+              <Input placeholder="Company" value={form.company} onChange={(e) => setForm({ ...form, company: e.target.value })} />
+              <Input placeholder="City" value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} />
+              <Input placeholder="State" value={form.state} onChange={(e) => setForm({ ...form, state: e.target.value })} />
+              <Input placeholder="Expected stations" type="number" value={form.expectedStations} onChange={(e) => setForm({ ...form, expectedStations: e.target.value })} />
+              <select className="border border-input rounded-md px-3 py-2 text-sm bg-background" value={form.source} onChange={(e) => setForm({ ...form, source: e.target.value })}>
+                <option value="">Source…</option>
+                {SOURCE_OPTIONS.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+              <Input placeholder="Station location" value={form.stationLocation} onChange={(e) => setForm({ ...form, stationLocation: e.target.value })} className="col-span-2" />
+              <textarea className="col-span-2 border border-input rounded-md p-3 text-sm bg-background resize-none min-h-[70px]" placeholder="Notes" value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              {lead.company && <><span className="text-muted-foreground">Company</span><span>{lead.company}</span></>}
+              {lead.phone && <><span className="text-muted-foreground">Phone</span><span>{lead.phone}</span></>}
+              {lead.email && <><span className="text-muted-foreground">Email</span><span>{lead.email}</span></>}
+              {lead.city && <><span className="text-muted-foreground">Location</span><span>{[lead.city, lead.state].filter(Boolean).join(', ')}</span></>}
+              {lead.expectedStations && <><span className="text-muted-foreground">Expected stations</span><span>{lead.expectedStations}</span></>}
+              {lead.stationLocation && <><span className="text-muted-foreground">Station location</span><span>{lead.stationLocation}</span></>}
+              {lead.source && <><span className="text-muted-foreground">Source</span><span>{lead.source}</span></>}
+              {lead.notes && <><span className="text-muted-foreground col-span-2">Notes</span><span className="col-span-2 whitespace-pre-wrap">{lead.notes}</span></>}
+            </div>
+          )}
         </CardContent>
       </Card>
 
