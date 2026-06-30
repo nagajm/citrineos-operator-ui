@@ -14,8 +14,8 @@ interface QItem {
   hsnCode: string;
   unit: string;
   qty: number;
-  unitCost: string;
-  unitPrice: string;
+  mrp: string;          // list / catalog price
+  discountPct: string;  // per-line discount % (optional, default '0')
   gstPercent: number;
   showInPdf: boolean;
 }
@@ -32,7 +32,7 @@ interface QForm {
 
 const BLANK_ITEM: QItem = {
   description: '', hsnCode: '', unit: 'No.', qty: 1,
-  unitCost: '', unitPrice: '0', gstPercent: 18, showInPdf: true,
+  mrp: '0', discountPct: '0', gstPercent: 18, showInPdf: true,
 };
 
 const DEFAULT_TC =
@@ -51,25 +51,27 @@ function inr(n: number) {
   return '₹' + n.toLocaleString('en-IN', { maximumFractionDigits: 0 });
 }
 
+function linePrice(it: QItem): number {
+  return (parseFloat(it.mrp) || 0) * (1 - (parseFloat(it.discountPct) || 0) / 100);
+}
+
 function calcSummary(items: QItem[], discPct: number) {
   const visible = items.filter((it) => it.showInPdf);
-  const pdfSub = visible.reduce((s, it) => s + (Number(it.qty) || 0) * (parseFloat(it.unitPrice) || 0), 0);
-  const allSub = items.reduce((s, it) => s + (Number(it.qty) || 0) * (parseFloat(it.unitPrice) || 0), 0);
-  const cost = items.reduce((s, it) => s + (Number(it.qty) || 0) * (parseFloat(it.unitCost) || 0), 0);
+  const pdfSub = visible.reduce((s, it) => s + (Number(it.qty) || 0) * linePrice(it), 0);
+  const allSub = items.reduce((s, it) => s + (Number(it.qty) || 0) * linePrice(it), 0);
   const discAmt = pdfSub * (discPct / 100);
   const taxable = pdfSub - discAmt;
   const gstGroups: Record<number, number> = {};
   for (const it of visible) {
     const rate = Number(it.gstPercent) || 0;
     if (rate > 0) {
-      const base = (Number(it.qty) || 0) * (parseFloat(it.unitPrice) || 0) * (1 - discPct / 100);
+      const base = (Number(it.qty) || 0) * linePrice(it) * (1 - discPct / 100);
       gstGroups[rate] = (gstGroups[rate] ?? 0) + base * rate / 100;
     }
   }
   const totalGst = Object.values(gstGroups).reduce((s, v) => s + v, 0);
   const grandTotal = taxable + totalGst;
-  const margin = cost > 0 ? ((allSub - cost) / cost * 100).toFixed(1) : null;
-  return { pdfSub, allSub, cost, discAmt, taxable, gstGroups, totalGst, grandTotal, margin };
+  return { pdfSub, allSub, discAmt, taxable, gstGroups, totalGst, grandTotal };
 }
 
 const STATUS_BADGE: Record<string, string> = {
@@ -194,8 +196,8 @@ export function QuotationSection({ leadId, leadName }: { leadId: string; leadNam
         hsnCode: (it as any).hsnCode ?? '',
         unit: (it as any).unit ?? 'No.',
         qty: Number((it as any).qty ?? (it as any).quantity ?? 1),
-        unitCost: (it as any).unitCost != null ? String((it as any).unitCost) : '',
-        unitPrice: String((it as any).unitPrice ?? 0),
+        mrp: String((it as any).mrp ?? (it as any).unitPrice ?? 0),
+        discountPct: String((it as any).discountPct ?? 0),
         gstPercent: Number((it as any).gstPercent ?? 18),
         showInPdf: (it as any).showInPdf !== false,
       })),
@@ -213,8 +215,8 @@ export function QuotationSection({ leadId, leadName }: { leadId: string; leadNam
     termsAndConditions: form.termsAndConditions || null,
     items: form.items.map((it, i) => ({
       ...it,
-      unitCost: it.unitCost ? parseFloat(it.unitCost) : null,
-      unitPrice: parseFloat(it.unitPrice) || 0,
+      mrp: parseFloat(it.mrp) || 0,
+      discountPct: parseFloat(it.discountPct) || 0,
       qty: Number(it.qty) || 1,
       order: i,
     })),
@@ -320,8 +322,8 @@ export function QuotationSection({ leadId, leadName }: { leadId: string; leadNam
       hsnCode: b.hsnCode ?? '',
       unit: b.unit,
       qty: b.qty,
-      unitCost: b.unitCost != null ? String(b.unitCost) : '',
-      unitPrice: String(b.unitPrice),
+      mrp: String(b.unitPrice),
+      discountPct: '0',
       gstPercent: b.gstPercent,
       showInPdf: true,
     }));
@@ -348,10 +350,11 @@ export function QuotationSection({ leadId, leadName }: { leadId: string; leadNam
         <div className="space-y-2 mb-6">
           {quotations.map((q) => {
             const visItems = (q.items ?? []).filter((it: any) => it.showInPdf !== false);
-            const sub = visItems.reduce((s: number, it: any) => s + (Number(it.qty ?? it.quantity) || 1) * (Number(it.unitPrice) || 0), 0);
+            const itemUp = (it: any) => (Number(it.mrp ?? it.unitPrice) || 0) * (1 - (Number(it.discountPct) || 0) / 100);
+            const sub = visItems.reduce((s: number, it: any) => s + (Number(it.qty ?? it.quantity) || 1) * itemUp(it), 0);
             const disc = sub * (Number(q.discountPercent) || 0) / 100;
             const gst = visItems.reduce((s: number, it: any) => {
-              const base = (Number(it.qty ?? it.quantity) || 1) * (Number(it.unitPrice) || 0) * (1 - (Number(q.discountPercent) || 0) / 100);
+              const base = (Number(it.qty ?? it.quantity) || 1) * itemUp(it) * (1 - (Number(q.discountPercent) || 0) / 100);
               return s + base * (Number(it.gstPercent) || 0) / 100;
             }, 0);
             const total = sub - disc + gst;
@@ -445,14 +448,15 @@ export function QuotationSection({ leadId, leadName }: { leadId: string; leadNam
                 <thead>
                   <tr className="border-b border-border">
                     <th className="pb-2 w-7 text-center" title="Show in PDF"><Eye className="h-3.5 w-3.5 text-muted-foreground mx-auto" /></th>
-                    {['Description', 'HSN', 'Unit', 'Qty', 'Cost (₹)', 'Price (₹)', 'GST%', 'Amount', ''].map((h, ci) => (
+                    {['Description', 'HSN', 'Unit', 'Qty', 'MRP (₹)', 'Disc%', 'GST%', 'Amount', ''].map((h, ci) => (
                       <th key={ci} className={`pb-2 pr-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground ${ci >= 3 && ci <= 7 ? 'text-right' : 'text-left'} ${ci === 0 ? 'w-28' : ''} ${ci === 8 ? 'w-8' : ''}`}>{h}</th>
                     ))}
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border/50">
                   {form.items.map((row, i) => {
-                    const lineAmt = (Number(row.qty) || 0) * (parseFloat(row.unitPrice) || 0);
+                    const lp = linePrice(row);
+                    const lineAmt = (Number(row.qty) || 0) * lp;
                     return (
                       <tr key={i} className={`group ${!row.showInPdf ? 'opacity-40' : ''}`}>
                         <td className="py-1.5 pr-2 text-center">
@@ -464,8 +468,8 @@ export function QuotationSection({ leadId, leadName }: { leadId: string; leadNam
                         <td className="py-1.5 pr-2"><Input value={row.hsnCode} onChange={(e) => setItem(i, 'hsnCode', e.target.value)} placeholder="—" className="h-8 text-sm w-24" /></td>
                         <td className="py-1.5 pr-2"><Input value={row.unit} onChange={(e) => setItem(i, 'unit', e.target.value)} className="h-8 text-sm w-20" /></td>
                         <td className="py-1.5 pr-2"><Input type="number" min="0" value={row.qty} onChange={(e) => setItem(i, 'qty', e.target.value)} className="h-8 text-sm text-right w-16" /></td>
-                        <td className="py-1.5 pr-2"><Input type="number" min="0" value={row.unitCost} onChange={(e) => setItem(i, 'unitCost', e.target.value)} placeholder="—" className="h-8 text-sm text-right w-28" /></td>
-                        <td className="py-1.5 pr-2"><Input type="number" min="0" value={row.unitPrice} onChange={(e) => setItem(i, 'unitPrice', e.target.value)} className="h-8 text-sm text-right w-28" /></td>
+                        <td className="py-1.5 pr-2"><Input type="number" min="0" value={row.mrp} onChange={(e) => setItem(i, 'mrp', e.target.value)} className="h-8 text-sm text-right w-28" /></td>
+                        <td className="py-1.5 pr-2"><Input type="number" min="0" max="100" value={row.discountPct} onChange={(e) => setItem(i, 'discountPct', e.target.value)} placeholder="0" className="h-8 text-sm text-right w-16" /></td>
                         <td className="py-1.5 pr-2"><Input type="number" min="0" max="100" value={row.gstPercent} onChange={(e) => setItem(i, 'gstPercent', Number(e.target.value))} className="h-8 text-sm text-right w-16" /></td>
                         <td className="py-1.5 pr-2 text-right text-sm font-medium w-24">{lineAmt > 0 ? inr(lineAmt) : '—'}</td>
                         <td className="py-1.5">
@@ -504,11 +508,7 @@ export function QuotationSection({ leadId, leadName }: { leadId: string; leadNam
                   <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground mb-3">Summary</p>
 
                   {hiddenCount > 0 && (
-                    <>
-                      <SumRow label="Internal total (all items)" value={inr(sum.allSub)} />
-                      <SumRow label={`PDF subtotal (${form.items.length - hiddenCount} shown)`} value={inr(sum.pdfSub)} />
-                      <div className="border-t border-border my-2" />
-                    </>
+                    <p className="text-xs text-muted-foreground mb-2">{hiddenCount} item{hiddenCount > 1 ? 's' : ''} hidden from PDF · totals below are PDF-only</p>
                   )}
 
                   <SumRow label="Subtotal" value={inr(sum.pdfSub)} />
@@ -522,13 +522,6 @@ export function QuotationSection({ leadId, leadName }: { leadId: string; leadNam
                   <div className="border-t border-border pt-2 mt-2">
                     <SumRow label="Grand Total" value={inr(sum.grandTotal)} bold />
                   </div>
-
-                  {sum.margin !== null && (
-                    <div className="border-t border-border pt-2 mt-1">
-                      <SumRow label="Internal margin" value={`${sum.margin}%`} color={parseFloat(sum.margin) >= 0 ? 'text-green-500 font-semibold' : 'text-destructive font-semibold'} />
-                      {sum.cost > 0 && <SumRow label="Internal cost" value={inr(sum.cost)} />}
-                    </div>
-                  )}
                 </div>
               </div>
             )}
