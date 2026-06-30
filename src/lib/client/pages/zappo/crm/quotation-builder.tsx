@@ -444,7 +444,7 @@ export function QuotationSection({ leadId, leadName }: { leadId: string; leadNam
               <table className="w-full text-sm min-w-[860px]">
                 <thead>
                   <tr className="border-b border-border">
-                    <th className="pb-2 w-7 text-center"><Eye className="h-3.5 w-3.5 text-muted-foreground mx-auto" title="Show in PDF" /></th>
+                    <th className="pb-2 w-7 text-center" title="Show in PDF"><Eye className="h-3.5 w-3.5 text-muted-foreground mx-auto" /></th>
                     {['Description', 'HSN', 'Unit', 'Qty', 'Cost (₹)', 'Price (₹)', 'GST%', 'Amount', ''].map((h, ci) => (
                       <th key={ci} className={`pb-2 pr-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground ${ci >= 3 && ci <= 7 ? 'text-right' : 'text-left'} ${ci === 0 ? 'w-28' : ''} ${ci === 8 ? 'w-8' : ''}`}>{h}</th>
                     ))}
