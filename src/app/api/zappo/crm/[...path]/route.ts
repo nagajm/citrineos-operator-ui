@@ -50,13 +50,28 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
     return NextResponse.json(data, { status: res.status });
   }
 
-  // JSON
-  const body = await req.json();
+  // JSON or no-body (e.g. generate-PDF / generate-DOCX POSTs)
+  let reqBody: string | undefined;
+  if (contentType.includes('application/json')) {
+    reqBody = JSON.stringify(await req.json());
+  }
   const res = await fetch(url, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-key': KEY },
-    body: JSON.stringify(body),
+    headers: { ...(reqBody ? { 'Content-Type': 'application/json' } : {}), 'x-admin-key': KEY },
+    body: reqBody,
   });
+
+  // Binary response — stream through (PDFs, Word docs, etc.)
+  const ct = res.headers.get('content-type') ?? '';
+  if (!ct.includes('application/json')) {
+    const blob = await res.blob();
+    const headers: Record<string, string> = { 'content-type': ct };
+    const cd = res.headers.get('content-disposition');
+    if (cd) headers['content-disposition'] = cd;
+    else headers['content-disposition'] = 'attachment';
+    return new NextResponse(blob, { status: res.status, headers });
+  }
+
   const data = await res.json();
   return NextResponse.json(data, { status: res.status });
 }
