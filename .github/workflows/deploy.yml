@@ -36,6 +36,7 @@ jobs:
           NEXT_PUBLIC_CITRINE_CORE_URL=https://app.zappoevcharging.com/citrine
           NEXT_PUBLIC_FILE_SERVER_URL=http://65.0.157.6:9000
           NEXT_PUBLIC_LOGO_URL=https://d1h8867rcwtfcw.cloudfront.net/logo-collapsed.svg
+          NEXT_PUBLIC_APP_NAME=Zappo
           NEXT_PUBLIC_ADMIN_EMAIL=jagan.mjm@gmail.com
           NEXT_PUBLIC_BANNER_MESSAGE=EV Charging Management System
           NEXTAUTH_URL=https://app.zappoevcharging.com
