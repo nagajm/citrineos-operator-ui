@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="zappoGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#06C8E8"/>
+      <stop offset="100%" stop-color="#0EA5E9"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="16" fill="url(#zappoGrad)"/>
+  <g transform="translate(13,11) scale(1.75)">
+    <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="#04091C"/>
+  </g>
+</svg>
