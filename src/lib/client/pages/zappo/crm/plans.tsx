@@ -7,7 +7,7 @@ import { Badge } from '@lib/client/components/ui/badge';
 import { Input } from '@lib/client/components/ui/input';
 import { heading2Style, pageMargin } from '@lib/client/styles/page';
 import Link from 'next/link';
-import { Plus, Check, Circle, Clock, LayoutList, LayoutGrid, ArrowUpDown, Tag, Settings2, Trash2 } from 'lucide-react';
+import { Plus, Check, Circle, Clock, LayoutList, LayoutGrid, ArrowUpDown, Tag, Settings2, Trash2, Search } from 'lucide-react';
 import type { CrmPlan, CrmTag, CrmUser } from '@lib/zappo/crm-types';
 
 const STATUS_OPTIONS = ['open', 'in_progress', 'done'] as const;
@@ -54,6 +54,26 @@ function formatDue(dueAt?: string | null) {
   return new Date(dueAt).toLocaleDateString('en-IN');
 }
 
+// Multi-field search: matches title/description/status/tags/assignee, and due date in
+// numeric ("15/7/2026", "2026-07-15") or month-name ("july") form. Each whitespace-separated
+// term must match at least one field, so "amit july" finds Amit's plans due in July.
+function matchesSearch(plan: CrmPlan, terms: string[], usersMap: Record<number, CrmUser>): boolean {
+  if (terms.length === 0) return true;
+  const assignee = plan.assigneeId ? usersMap[plan.assigneeId] : null;
+  const dueDate = plan.dueAt ? new Date(plan.dueAt) : null;
+  const haystacks = [
+    plan.title,
+    plan.description ?? '',
+    STATUS_LABELS[plan.status as Status] ?? plan.status,
+    assignee?.name ?? '',
+    ...(plan.tags ?? []).map((t) => t.name),
+    plan.dueAt ?? '',
+    dueDate ? dueDate.toLocaleDateString('en-IN') : '',
+    dueDate ? dueDate.toLocaleDateString('en-IN', { month: 'long', year: 'numeric' }) : '',
+  ].map((s) => s.toLowerCase());
+  return terms.every((term) => haystacks.some((h) => h.includes(term)));
+}
+
 function initials(name: string) {
   return name.split(' ').map((n) => n[0]).join('').toUpperCase().slice(0, 2);
 }
@@ -85,18 +105,27 @@ function TagPill({ tag }: { tag: CrmTag }) {
 
 // ─── shared plan card ──────────────────────────────────────────────────────────
 function PlanCard({
-  plan, onEdit, onDelete, compact, usersMap,
+  plan, onEdit, onDelete, compact, usersMap, draggable, onDragStart, onDragEnd, isDragging,
 }: {
   plan: CrmPlan;
   onEdit: (p: CrmPlan) => void;
   onDelete: (id: string) => void;
   compact?: boolean;
   usersMap: Record<number, CrmUser>;
+  draggable?: boolean;
+  onDragStart?: (e: React.DragEvent, plan: CrmPlan) => void;
+  onDragEnd?: () => void;
+  isDragging?: boolean;
 }) {
   const assignee = plan.assigneeId ? usersMap[plan.assigneeId] : null;
   const tags = plan.tags ?? [];
   return (
-    <Card className="shadow-none">
+    <Card
+      className={`shadow-none transition-opacity ${draggable ? 'cursor-grab active:cursor-grabbing' : ''} ${isDragging ? 'opacity-40' : ''}`}
+      draggable={draggable}
+      onDragStart={draggable ? (e) => onDragStart?.(e, plan) : undefined}
+      onDragEnd={draggable ? onDragEnd : undefined}
+    >
       <CardContent className={`${compact ? 'py-3 px-4' : 'py-3'} flex items-start justify-between gap-3`}>
         <div className="flex items-start gap-2 min-w-0">
           <span className="mt-0.5 shrink-0">{STATUS_ICONS[plan.status as Status]}</span>
@@ -215,6 +244,7 @@ export const CrmPlansPage = () => {
   const [tags, setTags] = useState<CrmTag[]>([]);
   const [users, setUsers] = useState<CrmUser[]>([]);
   const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState('');
   const [filterTagId, setFilterTagId] = useState('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterUserId, setFilterUserId] = useState<number | ''>('');
@@ -225,6 +255,8 @@ export const CrmPlansPage = () => {
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState<string | null>(null);
   const [editForm, setEditForm] = useState<PlanFormState>(BLANK_FORM);
+  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [dragOverCol, setDragOverCol] = useState<Status | null>(null);
 
   const usersMap = useMemo(() => {
     const m: Record<number, CrmUser> = {};
@@ -252,11 +284,13 @@ export const CrmPlansPage = () => {
 
   const filtered = useMemo(() => {
     let list = plans;
+    const terms = search.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    if (terms.length > 0) list = list.filter((p) => matchesSearch(p, terms, usersMap));
     if (filterTagId) list = list.filter((p) => (p.tags ?? []).some((t) => t.id === filterTagId));
     if (filterStatus) list = list.filter((p) => p.status === filterStatus);
     if (filterUserId !== '') list = list.filter((p) => p.assigneeId === filterUserId);
     return sortPlans(list, sortKey);
-  }, [plans, filterTagId, filterStatus, filterUserId, sortKey]);
+  }, [plans, search, filterTagId, filterStatus, filterUserId, sortKey, usersMap]);
 
   const byStatus = useMemo(() => {
     const m: Record<Status, CrmPlan[]> = { open: [], in_progress: [], done: [] };
@@ -292,6 +326,36 @@ export const CrmPlansPage = () => {
     } finally { setSaving(false); }
   };
 
+  const moveToStatus = async (id: string, status: Status) => {
+    const prev = plans;
+    setPlans((ps) => ps.map((p) => (p.id === id ? { ...p, status } : p)));
+    try {
+      await fetch(`/api/zappo/crm/plans/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+      });
+    } catch {
+      setPlans(prev);
+    }
+  };
+
+  const handleDragStart = (e: React.DragEvent, plan: CrmPlan) => {
+    setDraggingId(plan.id);
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/plain', plan.id);
+  };
+
+  const handleDrop = (e: React.DragEvent, col: Status) => {
+    e.preventDefault();
+    setDragOverCol(null);
+    const id = draggingId ?? e.dataTransfer.getData('text/plain');
+    setDraggingId(null);
+    if (!id) return;
+    const plan = plans.find((p) => p.id === id);
+    if (plan && plan.status !== col) moveToStatus(id, col);
+  };
+
   const deletePlan = async (id: string) => {
     await fetch(`/api/zappo/crm/plans/${id}`, { method: 'DELETE' });
     load();
@@ -314,11 +378,22 @@ export const CrmPlansPage = () => {
   return (
     <div className={`${pageMargin} flex flex-col gap-4`}>
       {/* header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-3">
         <h2 className={heading2Style}>Plans</h2>
-        <Button variant="success" onClick={() => setShowNew(true)}>
-          <Plus className="size-4 mr-2" /> New Plan
-        </Button>
+        <div className="flex items-center gap-2">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
+            <Input
+              placeholder="Search plans…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="pl-9 w-64"
+            />
+          </div>
+          <Button variant="success" onClick={() => setShowNew(true)}>
+            <Plus className="size-4 mr-2" /> New Plan
+          </Button>
+        </div>
       </div>
 
       {/* ── tag filter row ───────────────────────────────────────────────────── */}
@@ -450,7 +525,13 @@ export const CrmPlansPage = () => {
       {!loading && view === 'kanban' && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-start">
           {STATUS_OPTIONS.map((col) => (
-            <div key={col} className={`rounded-xl border border-t-4 ${COLUMN_COLORS[col]} ${COLUMN_BG[col]} flex flex-col gap-2 p-3`}>
+            <div
+              key={col}
+              className={`rounded-xl border border-t-4 ${COLUMN_COLORS[col]} ${COLUMN_BG[col]} flex flex-col gap-2 p-3 transition-shadow ${dragOverCol === col ? 'ring-2 ring-primary/50' : ''}`}
+              onDragOver={(e) => { e.preventDefault(); if (dragOverCol !== col) setDragOverCol(col); }}
+              onDragLeave={() => setDragOverCol((c) => (c === col ? null : c))}
+              onDrop={(e) => handleDrop(e, col)}
+            >
               <div className="flex items-center gap-2 px-1 pb-1">
                 <span>{STATUS_ICONS[col]}</span>
                 <span className="font-semibold text-sm">{STATUS_LABELS[col]}</span>
@@ -472,7 +553,18 @@ export const CrmPlansPage = () => {
                     tags={tags}
                   />
                 ) : (
-                  <PlanCard key={plan.id} plan={plan} onEdit={startEdit} onDelete={deletePlan} compact usersMap={usersMap} />
+                  <PlanCard
+                    key={plan.id}
+                    plan={plan}
+                    onEdit={startEdit}
+                    onDelete={deletePlan}
+                    compact
+                    usersMap={usersMap}
+                    draggable
+                    onDragStart={handleDragStart}
+                    onDragEnd={() => { setDraggingId(null); setDragOverCol(null); }}
+                    isDragging={draggingId === plan.id}
+                  />
                 )
               )}
 
