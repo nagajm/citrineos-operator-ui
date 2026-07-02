@@ -21,6 +21,7 @@ import {
 import config from '@lib/utils/config';
 import { HasuraHeader, HasuraRole } from '@lib/utils/hasura.types';
 import { useLogin, type AuthProvider } from '@refinedev/core';
+import { Eye, EyeOff } from 'lucide-react';
 import React, { useState } from 'react';
 import { signIn, getSession } from 'next-auth/react';
 
@@ -51,6 +52,7 @@ export const genericAdminUser: User = {
 const LoginPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const { mutate: login, isPending: isLoading } = useLogin();
 
@@ -69,15 +71,33 @@ const LoginPage: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4 py-12 sm:px-6 lg:px-8">
-      <Card className="w-full max-w-md">
-        <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold text-center">
-            Sign in to your account
-          </CardTitle>
-          <CardDescription className="text-center">
-            Enter your credentials to access the dashboard
-          </CardDescription>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#04091C] px-4 py-12 sm:px-6 lg:px-8">
+      {/* brand glow backdrop */}
+      <div
+        className="pointer-events-none absolute -top-40 left-1/2 h-[520px] w-[820px] -translate-x-1/2 rounded-full opacity-40 blur-3xl"
+        style={{ background: 'radial-gradient(ellipse at center, #06C8E8, transparent 70%)' }}
+      />
+      <div
+        className="pointer-events-none absolute bottom-[-200px] right-[-120px] h-[420px] w-[420px] rounded-full opacity-20 blur-3xl"
+        style={{ background: 'radial-gradient(ellipse at center, #0EA5E9, transparent 70%)' }}
+      />
+
+      <Card className="relative w-full max-w-md border-white/10 bg-white shadow-2xl">
+        <CardHeader className="items-center space-y-3 text-center">
+          <div
+            className="flex size-12 items-center justify-center rounded-xl shadow-[0_0_24px_rgba(6,200,232,.45)]"
+            style={{ background: 'linear-gradient(135deg, #06C8E8, #0EA5E9)' }}
+          >
+            <svg viewBox="0 0 24 24" className="size-6" fill="#04091C">
+              <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />
+            </svg>
+          </div>
+          <div>
+            <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+            <CardDescription className="mt-1">
+              Sign in to the Zappo operator console
+            </CardDescription>
+          </div>
         </CardHeader>
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-4">
@@ -103,19 +123,36 @@ const LoginPage: React.FC = () => {
 
             <div className="space-y-2">
               <Label htmlFor="password">Password</Label>
-              <Input
-                id="password"
-                type="password"
-                placeholder="Enter your password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-                autoComplete="current-password"
-                disabled={isLoading}
-              />
+              <div className="relative">
+                <Input
+                  id="password"
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="Enter your password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  autoComplete="current-password"
+                  disabled={isLoading}
+                  className="pr-9"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword((v) => !v)}
+                  className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                  tabIndex={-1}
+                  aria-label={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? <EyeOff className="size-4" /> : <Eye className="size-4" />}
+                </button>
+              </div>
             </div>
 
-            <Button type="submit" className="w-full" disabled={isLoading}>
+            <Button
+              type="submit"
+              disabled={isLoading}
+              className="w-full border-0 text-[#04091C] shadow-[0_0_20px_rgba(6,200,232,.35)] hover:opacity-90"
+              style={{ background: 'linear-gradient(135deg, #06C8E8, #0EA5E9)' }}
+            >
               {isLoading ? 'Signing in...' : 'Sign in'}
             </Button>
           </form>
