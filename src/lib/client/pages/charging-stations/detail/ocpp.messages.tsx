@@ -10,6 +10,7 @@ import {
   OCPPMessageProps,
 } from '@citrineos/base';
 import { Button } from '@lib/client/components/ui/button';
+import { Label } from '@lib/client/components/ui/label';
 import {
   Select,
   SelectContent,
@@ -17,6 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@lib/client/components/ui/select';
+import { Switch } from '@lib/client/components/ui/switch';
 import {
   Tooltip,
   TooltipContent,
@@ -81,6 +83,7 @@ export const OCPPMessages: React.FC<OCPPMessagesProps> = ({
   const [searchCid, setSearchCid] = useState<string>('');
   const [selectedActions, setSelectedActions] = useState<string[]>([]);
   const [selectedOrigin, setSelectedOrigin] = useState<string>(allOption);
+  const [hideHeartbeat, setHideHeartbeat] = useState<boolean>(false);
   const [filters, setFilters] = useState<LogicalFilter[]>([]);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
@@ -156,9 +159,23 @@ export const OCPPMessages: React.FC<OCPPMessagesProps> = ({
         value: selectedOrigin,
       });
     }
+    if (hideHeartbeat) {
+      newFilters.push({
+        field: OCPPMessageProps.action,
+        operator: 'ne',
+        value: OCPP_CallAction.Heartbeat,
+      });
+    }
 
     setFilters(newFilters);
-  }, [startDate, endDate, searchCid, selectedActions, selectedOrigin]);
+  }, [
+    startDate,
+    endDate,
+    searchCid,
+    selectedActions,
+    selectedOrigin,
+    hideHeartbeat,
+  ]);
 
   const findRelatedMessages = useCallback(
     (record: OCPPMessageDto) => {
@@ -188,11 +205,21 @@ export const OCPPMessages: React.FC<OCPPMessagesProps> = ({
   return (
     <>
       <div className="flex flex-col gap-4 w-full">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-4">
           <Button variant="secondary" onClick={() => setExportDialogOpen(true)}>
             <Download className={buttonIconSize} />
             {translate('buttons.exportToCsv')}
           </Button>
+          <div className="flex items-center gap-2">
+            <Switch
+              id="hide-heartbeat"
+              checked={hideHeartbeat}
+              onCheckedChange={setHideHeartbeat}
+            />
+            <Label htmlFor="hide-heartbeat" className="cursor-pointer">
+              Hide Heartbeat
+            </Label>
+          </div>
         </div>
         <div className="grid grid-cols-5 gap-2 w-full">
           <DebounceSearch
