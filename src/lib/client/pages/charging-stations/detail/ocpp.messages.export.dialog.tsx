@@ -78,7 +78,10 @@ export const OCPPMessagesExportDialog = ({
       (f) => f.field === OCPPMessageProps.correlationId,
     );
     const actionsFilter = filters.find(
-      (f) => f.field === OCPPMessageProps.action,
+      (f) => f.field === OCPPMessageProps.action && f.operator === 'in',
+    );
+    const hideHeartbeatFilter = filters.find(
+      (f) => f.field === OCPPMessageProps.action && f.operator === 'ne',
     );
     const originFilter = filters.find(
       (f) => f.field === OCPPMessageProps.origin,
@@ -102,6 +105,9 @@ export const OCPPMessagesExportDialog = ({
     }
     if (originFilter) {
       messageItems.push(createFilterListItem('Origin', originFilter.value));
+    }
+    if (hideHeartbeatFilter) {
+      messageItems.push(createFilterListItem('Heartbeat', 'Hidden'));
     }
     if (startDateFilter) {
       messageItems.push(
