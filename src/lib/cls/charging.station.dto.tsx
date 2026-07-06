@@ -140,7 +140,18 @@ export const getChargingStationStatusCounts = (
         // Match against evse.evseId (OCPP ID column) or evse.evseTypeId (fallback for overview query).
         const evseOcppId =
           (evse as any).evseId ?? (evse as any).evseTypeId;
-        return sn.evseId === null || sn.evseId === evseOcppId;
+        if (evseOcppId === null || evseOcppId === undefined) {
+          // We have no evse identifier to match against (single-connector 1.6
+          // station where it was never resolved) — an equally-unidentified
+          // status notification is the only safe match.
+          return sn.evseId === null;
+        }
+        // We know which evse this is: require an exact match. Treating any
+        // null-evseId status notification as a wildcard here would let a
+        // *different* connector's unidentified status win over this evse's
+        // real, correctly-tagged one (seen on multi-connector 1.6 stations
+        // where evseId is resolved inconsistently across StatusNotifications).
+        return sn.evseId === evseOcppId;
       });
 
       let connectorStatus: ConnectorStatusEnumType | undefined;
