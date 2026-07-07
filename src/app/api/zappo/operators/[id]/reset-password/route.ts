@@ -5,11 +5,13 @@ const KEY = process.env.ZAPPO_ADMIN_API_KEY ?? '';
 
 const headers = () => ({ 'Content-Type': 'application/json', 'x-admin-key': KEY });
 
-export async function POST(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
+  const body = await req.json().catch(() => ({}));
   const res = await fetch(`${API}/admin/operators/${id}/reset-password`, {
     method: 'POST',
     headers: headers(),
+    body: JSON.stringify(body),
   });
   const data = await res.json();
   return NextResponse.json(data, { status: res.status });

@@ -23,7 +23,10 @@ export const OperatorsList = () => {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
-  const [resetting, setResetting] = useState<string | null>(null);
+  const [resetTarget, setResetTarget] = useState<VsOperator | null>(null);
+  const [passwordInput, setPasswordInput] = useState('');
+  const [passwordError, setPasswordError] = useState('');
+  const [submittingReset, setSubmittingReset] = useState(false);
   const [resetResult, setResetResult] = useState<{ name: string; password: string } | null>(null);
   const [error, setError] = useState('');
 
@@ -63,21 +66,31 @@ export const OperatorsList = () => {
     }
   };
 
-  const resetPassword = async (op: VsOperator) => {
-    if (!confirm(`Reset password for ${op.name}? This immediately invalidates their current password.`)) return;
-    setResetting(op.id);
+  const submitReset = async () => {
+    if (!resetTarget) return;
+    if (passwordInput && passwordInput.length < 8) {
+      setPasswordError('Password must be at least 8 characters');
+      return;
+    }
+    setPasswordError('');
+    setSubmittingReset(true);
     try {
-      const res = await fetch(`/api/zappo/operators/${op.id}/reset-password`, { method: 'POST' });
+      const res = await fetch(`/api/zappo/operators/${resetTarget.id}/reset-password`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: passwordInput || undefined }),
+      });
       const data = await res.json();
       if (res.ok && data.password) {
-        setResetResult({ name: op.name, password: data.password });
+        setResetResult({ name: resetTarget.name, password: data.password });
+        setResetTarget(null);
       } else {
-        setError('Failed to reset password');
+        setPasswordError(data.message ?? 'Failed to reset password');
       }
     } catch {
-      setError('Failed to reset password');
+      setPasswordError('Failed to reset password');
     } finally {
-      setResetting(null);
+      setSubmittingReset(false);
     }
   };
 
@@ -152,8 +165,7 @@ export const OperatorsList = () => {
                 <Button
                   variant="outline"
                   size="sm"
-                  disabled={resetting === op.id}
-                  onClick={() => resetPassword(op)}
+                  onClick={() => { setResetTarget(op); setPasswordInput(''); setPasswordError(''); }}
                 >
                   <KeyRound className="size-4 mr-1" />
                   Reset Password
@@ -168,6 +180,33 @@ export const OperatorsList = () => {
           </Card>
         ))}
       </div>
+
+      <Dialog open={!!resetTarget} onOpenChange={(open) => { if (!open) setResetTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Reset password for {resetTarget?.name}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Enter a new password, or leave blank to auto-generate one. This immediately
+            invalidates the operator's current password.
+          </p>
+          <Input
+            type="text"
+            placeholder="New password (optional)"
+            value={passwordInput}
+            onChange={(e) => { setPasswordInput(e.target.value); setPasswordError(''); }}
+          />
+          {passwordError && <p className="text-sm text-destructive">{passwordError}</p>}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setResetTarget(null)}>
+              Cancel
+            </Button>
+            <Button disabled={submittingReset} onClick={submitReset}>
+              {passwordInput ? 'Set Password' : 'Generate & Reset'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       <Dialog open={!!resetResult} onOpenChange={(open) => { if (!open) setResetResult(null); }}>
         <DialogContent showCloseButton={false}>
