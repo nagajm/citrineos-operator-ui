@@ -6,8 +6,15 @@ import { Button } from '@lib/client/components/ui/button';
 import { Card, CardContent, CardHeader } from '@lib/client/components/ui/card';
 import { Badge } from '@lib/client/components/ui/badge';
 import { heading2Style, pageMargin } from '@lib/client/styles/page';
-import { Pencil, Plus, PowerOff, Search, Zap } from 'lucide-react';
+import { Copy, KeyRound, Pencil, Plus, PowerOff, Search, Zap } from 'lucide-react';
 import { Input } from '@lib/client/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@lib/client/components/ui/dialog';
 import type { VsOperator } from '@lib/zappo/types';
 
 export const OperatorsList = () => {
@@ -16,6 +23,8 @@ export const OperatorsList = () => {
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
   const [toggling, setToggling] = useState<string | null>(null);
+  const [resetting, setResetting] = useState<string | null>(null);
+  const [resetResult, setResetResult] = useState<{ name: string; password: string } | null>(null);
   const [error, setError] = useState('');
 
   const loadOperators = () => {
@@ -51,6 +60,24 @@ export const OperatorsList = () => {
       loadOperators();
     } finally {
       setToggling(null);
+    }
+  };
+
+  const resetPassword = async (op: VsOperator) => {
+    if (!confirm(`Reset password for ${op.name}? This immediately invalidates their current password.`)) return;
+    setResetting(op.id);
+    try {
+      const res = await fetch(`/api/zappo/operators/${op.id}/reset-password`, { method: 'POST' });
+      const data = await res.json();
+      if (res.ok && data.password) {
+        setResetResult({ name: op.name, password: data.password });
+      } else {
+        setError('Failed to reset password');
+      }
+    } catch {
+      setError('Failed to reset password');
+    } finally {
+      setResetting(null);
     }
   };
 
@@ -122,6 +149,15 @@ export const OperatorsList = () => {
                   <Plus className="size-4 mr-1" />
                   Assign Station
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  disabled={resetting === op.id}
+                  onClick={() => resetPassword(op)}
+                >
+                  <KeyRound className="size-4 mr-1" />
+                  Reset Password
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground flex gap-6">
@@ -132,6 +168,31 @@ export const OperatorsList = () => {
           </Card>
         ))}
       </div>
+
+      <Dialog open={!!resetResult} onOpenChange={(open) => { if (!open) setResetResult(null); }}>
+        <DialogContent showCloseButton={false}>
+          <DialogHeader>
+            <DialogTitle>Password reset for {resetResult?.name}</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            Share this password with the operator directly — it won't be shown again. There's no
+            self-service reset yet, so this is the only copy.
+          </p>
+          <div className="flex items-center gap-2 rounded-md border bg-muted px-3 py-2 font-mono text-sm">
+            <span className="flex-1 select-all">{resetResult?.password}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => resetResult && navigator.clipboard.writeText(resetResult.password)}
+            >
+              <Copy className="size-4" />
+            </Button>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setResetResult(null)}>Done</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
