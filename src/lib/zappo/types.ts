@@ -38,16 +38,3 @@ export interface VsRfidTag {
   updatedAt: string;
 }
 
-export type VsPricingMode = 'standard' | 'discounted';
-export type VsDiscountType = 'percent' | 'flat';
-
-export interface VsPricingOverride {
-  id: string;
-  driverId: string;
-  operatorId: string;
-  pricingMode: VsPricingMode;
-  discountType?: VsDiscountType;
-  discountValue?: number;
-  createdAt: string;
-  updatedAt: string;
-}
