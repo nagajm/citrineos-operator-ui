@@ -23,3 +23,31 @@ export interface VsCreateOperatorBody {
   company?: string;
   initialBillingRate?: number;
 }
+
+export type VsRfidCardType = 'owner' | 'customer' | 'super_admin';
+
+export interface VsRfidTag {
+  id: string;
+  idToken: string;
+  label?: string;
+  operatorId?: string;
+  linkedDriverId?: string;
+  cardType: VsRfidCardType;
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type VsPricingMode = 'standard' | 'discounted';
+export type VsDiscountType = 'percent' | 'flat';
+
+export interface VsPricingOverride {
+  id: string;
+  driverId: string;
+  operatorId: string;
+  pricingMode: VsPricingMode;
+  discountType?: VsDiscountType;
+  discountValue?: number;
+  createdAt: string;
+  updatedAt: string;
+}

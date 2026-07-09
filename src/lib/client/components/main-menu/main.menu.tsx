@@ -10,6 +10,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Clipboard,
+  CreditCard,
   EvCharger,
   Handshake,
   HelpCircle,
@@ -42,6 +43,7 @@ export enum MenuSection {
   ZAPPO_OPERATORS = 'zappo/operators',
   ZAPPO_CRM = 'zappo/crm',
   ZAPPO_USERS = 'zappo/users',
+  ZAPPO_RFID_TAGS = 'zappo/rfid-tags',
 }
 
 export interface MainMenuProps {
@@ -131,6 +133,12 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
       label: 'Users',
       icon: <ShieldCheck className={sidebarIconSize} />,
       permission: Permission.UsersManage,
+    },
+    {
+      key: `/${MenuSection.ZAPPO_RFID_TAGS}`,
+      label: 'RFID Cards',
+      icon: <CreditCard className={sidebarIconSize} />,
+      permission: Permission.RfidManage,
     },
   ].filter((item) => !item.permission || roleHasPermission(role, item.permission));
 
