@@ -1,16 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAdminProxyHeaders } from '@lib/server/admin-proxy-headers';
 
 const API = process.env.ZAPPO_API_URL ?? 'http://65.0.157.6:3001/api/v1';
-const KEY = process.env.ZAPPO_ADMIN_API_KEY ?? '';
-
-const headers = () => ({ 'Content-Type': 'application/json', 'x-admin-key': KEY });
 
 export async function POST(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const body = await req.json().catch(() => ({}));
   const res = await fetch(`${API}/admin/operators/${id}/reset-password`, {
     method: 'POST',
-    headers: headers(),
+    headers: await getAdminProxyHeaders(),
     body: JSON.stringify(body),
   });
   const data = await res.json();

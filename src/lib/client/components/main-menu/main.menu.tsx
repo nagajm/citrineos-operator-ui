@@ -16,17 +16,20 @@ import {
   Home,
   MapPin,
   Receipt,
+  ShieldCheck,
   UserCog,
   Users,
 } from 'lucide-react';
 import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
+import { useSession } from 'next-auth/react';
 import { Button } from '@lib/client/components/ui/button';
 import { sidebarIconSize } from '@lib/client/styles/icon';
 import { ThemeToggle } from '@lib/client/components/theme-toggle';
 import { LogoutButton } from '@lib/client/components/logout-button';
 import { useTranslate } from '@refinedev/core';
+import { Permission, roleHasPermission } from '@lib/utils/admin-permissions';
 
 export enum MenuSection {
   OVERVIEW = 'overview',
@@ -38,6 +41,7 @@ export enum MenuSection {
   PARTNERS = 'partners',
   ZAPPO_OPERATORS = 'zappo/operators',
   ZAPPO_CRM = 'zappo/crm',
+  ZAPPO_USERS = 'zappo/users',
 }
 
 export interface MainMenuProps {
@@ -48,6 +52,11 @@ interface MenuItem {
   key: string;
   label: string;
   icon: React.ReactNode;
+  // Omit for core CitrineOS pages that predate the permission system (Locations,
+  // Charging Stations, Transactions, Tariffs, Partners) — those stay visible to
+  // everyone logged in. Only the newer Zappo-specific areas are gated, so a role
+  // never sees a nav item that just leads to a 403 from the API.
+  permission?: Permission;
 }
 
 export const MainMenu = ({ activeSection }: MainMenuProps) => {
@@ -55,6 +64,8 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
   const [collapsed, setCollapsed] = useState(true);
   const menuRef = useRef<HTMLElement>(null);
   const translate = useTranslate();
+  const { data: session } = useSession();
+  const role = (session?.user as { role?: string } | undefined)?.role;
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -86,6 +97,7 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
       key: `/${MenuSection.AUTHORIZATIONS}`,
       label: translate('Authorizations.Authorizations'),
       icon: <Clipboard className={sidebarIconSize} />,
+      permission: Permission.AuthorizationsManage,
     },
     {
       key: `/${MenuSection.TRANSACTIONS}`,
@@ -106,13 +118,21 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
       key: `/${MenuSection.ZAPPO_OPERATORS}`,
       label: 'Operators',
       icon: <UserCog className={sidebarIconSize} />,
+      permission: Permission.OperatorsManage,
     },
     {
       key: `/${MenuSection.ZAPPO_CRM}`,
       label: 'CRM',
       icon: <Users className={sidebarIconSize} />,
+      permission: Permission.CrmManage,
     },
-  ];
+    {
+      key: `/${MenuSection.ZAPPO_USERS}`,
+      label: 'Users',
+      icon: <ShieldCheck className={sidebarIconSize} />,
+      permission: Permission.UsersManage,
+    },
+  ].filter((item) => !item.permission || roleHasPermission(role, item.permission));
 
   return (
     <>

@@ -130,7 +130,7 @@ export const CrmUsersPage = () => {
       <div className="flex items-center justify-between">
         <div>
           <h2 className={heading2Style}>Team Users</h2>
-          <p className="text-xs text-muted-foreground mt-0.5">Login accounts for the operator dashboard — also assignable in CRM</p>
+          <p className="text-xs text-muted-foreground mt-0.5">Login accounts for the operator dashboard, with role-based access</p>
         </div>
         <Button variant="success" onClick={() => setShowNew(true)}>
           <Plus className="size-4 mr-2" /> Add User

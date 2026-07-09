@@ -12,7 +12,6 @@ const tabs = [
   { href: '/zappo/crm/products', label: 'Products' },
   { href: '/zappo/crm/knowledge-base', label: 'Knowledge Base' },
   { href: '/zappo/crm/tags', label: 'Tags' },
-  { href: '/zappo/crm/users', label: 'Users' },
 ];
 
 export default function CrmLayout({ children }: { children: React.ReactNode }) {

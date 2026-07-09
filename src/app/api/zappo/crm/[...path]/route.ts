@@ -1,7 +1,7 @@
-﻿import { NextRequest, NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
+import { getAdminProxyHeaders } from '@lib/server/admin-proxy-headers';
 
 const API = process.env.ZAPPO_API_URL ?? 'http://65.0.157.6:3001/api/v1';
-const KEY = process.env.ZAPPO_ADMIN_API_KEY ?? '';
 
 type RouteContext = { params: Promise<{ path: string[] }> };
 
@@ -13,7 +13,7 @@ function upstream(path: string[], search: string): string {
 export async function GET(req: NextRequest, ctx: RouteContext) {
   const { path } = await ctx.params;
   const url = upstream(path, req.nextUrl.searchParams.toString());
-  const res = await fetch(url, { headers: { 'x-admin-key': KEY }, cache: 'no-store' });
+  const res = await fetch(url, { headers: await getAdminProxyHeaders(), cache: 'no-store' });
 
   // Binary response — stream through (images, PDFs, file downloads)
   const ct = res.headers.get('content-type') ?? '';
@@ -37,13 +37,14 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
   const { path } = await ctx.params;
   const url = upstream(path, req.nextUrl.searchParams.toString());
   const contentType = req.headers.get('content-type') ?? '';
+  const adminHeaders = await getAdminProxyHeaders();
 
   // Multipart (file upload) — stream body through unchanged
   if (contentType.includes('multipart/form-data')) {
     const body = await req.blob();
     const res = await fetch(url, {
       method: 'POST',
-      headers: { 'x-admin-key': KEY, 'content-type': contentType },
+      headers: { 'x-admin-key': adminHeaders['x-admin-key'], 'x-admin-role': adminHeaders['x-admin-role'], 'content-type': contentType },
       body,
     });
     const data = await res.json();
@@ -57,7 +58,11 @@ export async function POST(req: NextRequest, ctx: RouteContext) {
   }
   const res = await fetch(url, {
     method: 'POST',
-    headers: { ...(reqBody ? { 'Content-Type': 'application/json' } : {}), 'x-admin-key': KEY },
+    headers: {
+      ...(reqBody ? { 'Content-Type': 'application/json' } : {}),
+      'x-admin-key': adminHeaders['x-admin-key'],
+      'x-admin-role': adminHeaders['x-admin-role'],
+    },
     body: reqBody,
   });
 
@@ -82,7 +87,7 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
   const body = await req.json();
   const res = await fetch(url, {
     method: 'PATCH',
-    headers: { 'Content-Type': 'application/json', 'x-admin-key': KEY },
+    headers: await getAdminProxyHeaders(),
     body: JSON.stringify(body),
   });
   const data = await res.json();
@@ -92,7 +97,11 @@ export async function PATCH(req: NextRequest, ctx: RouteContext) {
 export async function DELETE(req: NextRequest, ctx: RouteContext) {
   const { path } = await ctx.params;
   const url = upstream(path, req.nextUrl.searchParams.toString());
-  const res = await fetch(url, { method: 'DELETE', headers: { 'x-admin-key': KEY } });
+  const adminHeaders = await getAdminProxyHeaders();
+  const res = await fetch(url, {
+    method: 'DELETE',
+    headers: { 'x-admin-key': adminHeaders['x-admin-key'], 'x-admin-role': adminHeaders['x-admin-role'] },
+  });
   if (res.status === 204 || res.headers.get('content-length') === '0') {
     return new NextResponse(null, { status: res.status });
   }
