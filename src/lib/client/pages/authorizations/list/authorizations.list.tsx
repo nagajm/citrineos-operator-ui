@@ -51,7 +51,7 @@ import { EMPTY_VALUE } from '@lib/utils/consts';
 interface AuthorizationOwner {
   name: string | null;
   phone: string | null;
-  driverId: string | null;
+  driverId: number | null;
   /** 'driver' = own auth token; 'vehicle' = car idTag linked to a driver; 'rfid_card' = a
    *  zappo_rfid_tags test/owner/customer card, claimed by this driver. */
   linkType: 'driver' | 'vehicle' | 'rfid_card';

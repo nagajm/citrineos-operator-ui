@@ -17,7 +17,7 @@ import { User, Car } from 'lucide-react';
 interface AuthorizationOwner {
   name: string | null;
   phone: string | null;
-  driverId: string | null;
+  driverId: number | null;
   linkType: 'driver' | 'vehicle';
   vehicleLabel?: string | null;
 }

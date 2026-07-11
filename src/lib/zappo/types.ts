@@ -31,7 +31,7 @@ export interface VsRfidTag {
   idToken: string;
   label?: string;
   operatorId?: number;
-  linkedDriverId?: string;
+  linkedDriverId?: number;
   cardType: VsRfidCardType;
   isActive: boolean;
   createdAt: string;
