@@ -52,9 +52,11 @@ interface AuthorizationOwner {
   name: string | null;
   phone: string | null;
   driverId: string | null;
-  /** 'driver' = own auth token; 'vehicle' = car idTag linked to a driver */
-  linkType: 'driver' | 'vehicle';
+  /** 'driver' = own auth token; 'vehicle' = car idTag linked to a driver; 'rfid_card' = a
+   *  zappo_rfid_tags test/owner/customer card, claimed by this driver. */
+  linkType: 'driver' | 'vehicle' | 'rfid_card';
   vehicleLabel?: string | null;
+  cardLabel?: string | null;
 }
 
 interface EnrichedAuthorization {
@@ -81,8 +83,12 @@ const PAGE_SIZE = 20;
 function ownerCell(owner: AuthorizationOwner | null) {
   if (!owner) return <Badge variant="muted">Unlinked</Badge>;
 
-  const label = owner.vehicleLabel ? ` · ${owner.vehicleLabel}` : '';
-  const type = owner.linkType === 'vehicle' ? ' (vehicle)' : '';
+  const label = owner.vehicleLabel
+    ? ` · ${owner.vehicleLabel}`
+    : owner.cardLabel
+      ? ` · ${owner.cardLabel}`
+      : '';
+  const type = owner.linkType === 'vehicle' ? ' (vehicle)' : owner.linkType === 'rfid_card' ? ' (RFID card)' : '';
 
   return (
     <span>
