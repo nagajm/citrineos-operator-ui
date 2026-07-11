@@ -21,10 +21,39 @@ import { ScrollArea } from '@ferdiunal/refine-shadcn/ui';
 import { copy } from '@lib/utils/copy';
 import { formatDate } from '@lib/client/components/timestamp-display';
 
+// Some vendors (e.g. a DataTransfer's `data` field) embed a JSON object as a JSON-STRING,
+// since OCPP's DataTransfer payload is spec'd as a plain string — not something we or CitrineOS
+// add, it's the only way a station can put structured data into a string-typed field. Recursively
+// un-escapes any string value that itself parses as JSON, so the viewer can show it expanded
+// instead of a single escaped blob. Never mutates what's actually stored/transmitted — this is
+// purely a display transform, gated behind the "Expand nested JSON" toggle.
+function expandNestedJsonStrings(value: unknown): unknown {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    const looksLikeJson =
+      (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+      (trimmed.startsWith('[') && trimmed.endsWith(']'));
+    if (!looksLikeJson) return value;
+    try {
+      return expandNestedJsonStrings(JSON.parse(trimmed));
+    } catch {
+      return value;
+    }
+  }
+  if (Array.isArray(value)) return value.map(expandNestedJsonStrings);
+  if (value && typeof value === 'object') {
+    return Object.fromEntries(
+      Object.entries(value).map(([k, v]) => [k, expandNestedJsonStrings(v)]),
+    );
+  }
+  return value;
+}
+
 export const CollapsibleOCPPMessageViewer: React.FC<{
   ocppMessageDto: OCPPMessageDto;
   unparsed?: boolean;
-}> = ({ ocppMessageDto, unparsed }) => {
+  expandNestedJson?: boolean;
+}> = ({ ocppMessageDto, unparsed, expandNestedJson }) => {
   const [open, setOpen] = useState(false);
   const threshold = 7;
 
@@ -62,7 +91,11 @@ export const CollapsibleOCPPMessageViewer: React.FC<{
     }
   }
 
-  const formattedJson = JSON.stringify(payload, null, 2);
+  const formattedJson = JSON.stringify(
+    expandNestedJson ? expandNestedJsonStrings(payload) : payload,
+    null,
+    2,
+  );
   const lines = formattedJson.split('\n');
   const isExpandable = lines.length > threshold;
 

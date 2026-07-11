@@ -84,6 +84,7 @@ export const OCPPMessages: React.FC<OCPPMessagesProps> = ({
   const [selectedActions, setSelectedActions] = useState<string[]>([]);
   const [selectedOrigin, setSelectedOrigin] = useState<string>(allOption);
   const [hideHeartbeat, setHideHeartbeat] = useState<boolean>(false);
+  const [expandNestedJson, setExpandNestedJson] = useState<boolean>(false);
   const [filters, setFilters] = useState<LogicalFilter[]>([]);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
@@ -218,6 +219,16 @@ export const OCPPMessages: React.FC<OCPPMessagesProps> = ({
             />
             <Label htmlFor="hide-heartbeat" className="cursor-pointer">
               Hide Heartbeat
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <Switch
+              id="expand-nested-json"
+              checked={expandNestedJson}
+              onCheckedChange={setExpandNestedJson}
+            />
+            <Label htmlFor="expand-nested-json" className="cursor-pointer">
+              Expand Nested JSON
             </Label>
           </div>
         </div>
@@ -371,6 +382,7 @@ export const OCPPMessages: React.FC<OCPPMessagesProps> = ({
                   <CollapsibleOCPPMessageViewer
                     ocppMessageDto={row.original}
                     unparsed={typeof row.original.message === 'string'}
+                    expandNestedJson={expandNestedJson}
                   />
                 );
               }}
