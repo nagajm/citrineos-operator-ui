@@ -63,16 +63,29 @@ export const CollapsibleOCPPMessageViewer: React.FC<{
   const action = ocppMessageDto.action;
   const origin = ocppMessageDto.origin;
 
+  // Some rows have the WHOLE message double-JSON-encoded — stored as a string containing
+  // '[2,"id","Action",{...}]' instead of the real array (a known backend quirk, not something
+  // this component should paper over by re-stringifying). Parse it back to the real structure
+  // first, then run the exact same Call/CallResult/CallError extraction every other row gets —
+  // otherwise this ends up JSON.stringify-ing an already-stringified value, adding a further
+  // layer of escaping on every render.
+  let resolvedMessage: unknown = ocppMessage;
+  if (unparsed && typeof ocppMessage === 'string') {
+    try {
+      resolvedMessage = JSON.parse(ocppMessage);
+    } catch {
+      resolvedMessage = ocppMessage; // genuinely not JSON — leave as the raw string
+    }
+  }
+
   let payload;
-  if (unparsed) {
-    payload = JSON.stringify(ocppMessage);
-  } else {
-    switch (ocppMessage[0]) {
+  if (Array.isArray(resolvedMessage)) {
+    switch (resolvedMessage[0]) {
       case MessageTypeId.Call:
-        payload = ocppMessage[3];
+        payload = resolvedMessage[3];
         break;
       case MessageTypeId.CallResult:
-        payload = ocppMessage[2];
+        payload = resolvedMessage[2];
         break;
       case MessageTypeId.CallError: {
         const [
@@ -81,14 +94,16 @@ export const CollapsibleOCPPMessageViewer: React.FC<{
           errorCode,
           errorDescription,
           errorDetails,
-        ] = ocppMessage;
+        ] = resolvedMessage;
         payload = { errorCode, errorDescription, errorDetails };
         break;
       }
       default:
-        payload = ocppMessage;
+        payload = resolvedMessage;
         break;
     }
+  } else {
+    payload = resolvedMessage;
   }
 
   const formattedJson = JSON.stringify(
@@ -129,7 +144,7 @@ export const CollapsibleOCPPMessageViewer: React.FC<{
           size="xs"
           onClick={async (e) => {
             e.stopPropagation();
-            await copy(JSON.stringify(ocppMessage, null, 2), false);
+            await copy(JSON.stringify(resolvedMessage, null, 2), false);
           }}
           className={`absolute top-1 ${isExpandable ? 'right-8' : 'right-1'} p-1`}
         >
@@ -199,7 +214,7 @@ export const CollapsibleOCPPMessageViewer: React.FC<{
             size="xs"
             onClick={async (e) => {
               e.stopPropagation();
-              await copy(JSON.stringify(ocppMessage, null, 2), false);
+              await copy(JSON.stringify(resolvedMessage, null, 2), false);
             }}
             className="absolute top-4 right-6 p-1"
           >
