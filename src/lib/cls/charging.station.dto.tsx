@@ -203,6 +203,19 @@ export const getChargingStationStatusCounts = (
           case OCPP2_0_1.ConnectorStatusEnumType.Faulted:
             counts[ChargingStationStatus.FAULTED]++;
             break;
+          // OCPP 1.6 stations report these 9 values directly (2.0.1 collapses them into
+          // "Occupied", handled above) — without explicit cases they fell to default and
+          // showed as Unavailable, which reads as broken/disabled when the connector is
+          // actually mid-interaction (cable plugged in, finishing up, etc).
+          case 'Charging':
+            counts[ChargingStationStatus.CHARGING]++;
+            break;
+          case 'Preparing':
+          case 'Finishing':
+          case 'SuspendedEV':
+          case 'SuspendedEVSE':
+            counts[ChargingStationStatus.CHARGING_SUSPENDED]++;
+            break;
           case OCPP2_0_1.ConnectorStatusEnumType.Unavailable:
           case OCPP2_0_1.ConnectorStatusEnumType.Reserved:
           default:
