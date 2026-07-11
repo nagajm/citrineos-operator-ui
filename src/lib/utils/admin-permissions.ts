@@ -9,6 +9,8 @@ export enum Permission {
   CrmManage = 'crm:manage',
   UsersManage = 'users:manage',
   RfidManage = 'rfid:manage',
+  FinanceManage = 'finance:manage',
+  DriversView = 'drivers:view',
 }
 
 export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
@@ -19,8 +21,9 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.AuthorizationsManage,
     Permission.CrmManage,
     Permission.RfidManage,
+    Permission.DriversView,
   ],
-  ops: [Permission.StationsView, Permission.AuthorizationsManage, Permission.RfidManage],
+  ops: [Permission.StationsView, Permission.AuthorizationsManage, Permission.RfidManage, Permission.DriversView],
   sales: [Permission.CrmManage],
 };
 

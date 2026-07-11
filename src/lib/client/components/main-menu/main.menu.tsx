@@ -7,6 +7,7 @@ import { Logo } from '@lib/client/components/title';
 import { cn } from '@lib/utils/cn';
 import {
   ArrowLeftRight,
+  Car,
   ChevronLeft,
   ChevronRight,
   Clipboard,
@@ -17,7 +18,9 @@ import {
   Home,
   MapPin,
   Receipt,
+  Settings as SettingsIcon,
   ShieldCheck,
+  TrendingUp,
   UserCog,
   Users,
 } from 'lucide-react';
@@ -44,6 +47,9 @@ export enum MenuSection {
   ZAPPO_CRM = 'zappo/crm',
   ZAPPO_USERS = 'zappo/users',
   ZAPPO_RFID_TAGS = 'zappo/rfid-tags',
+  ZAPPO_OPERATOR_EARNINGS = 'zappo/operator-earnings',
+  ZAPPO_DRIVERS = 'zappo/drivers',
+  ZAPPO_SETTINGS = 'zappo/settings',
 }
 
 export interface MainMenuProps {
@@ -139,6 +145,24 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
       label: 'RFID Cards',
       icon: <CreditCard className={sidebarIconSize} />,
       permission: Permission.RfidManage,
+    },
+    {
+      key: `/${MenuSection.ZAPPO_OPERATOR_EARNINGS}`,
+      label: 'Operator Earnings',
+      icon: <TrendingUp className={sidebarIconSize} />,
+      permission: Permission.FinanceManage,
+    },
+    {
+      key: `/${MenuSection.ZAPPO_DRIVERS}`,
+      label: 'Drivers',
+      icon: <Car className={sidebarIconSize} />,
+      permission: Permission.DriversView,
+    },
+    {
+      key: `/${MenuSection.ZAPPO_SETTINGS}`,
+      label: 'Settings',
+      icon: <SettingsIcon className={sidebarIconSize} />,
+      permission: Permission.FinanceManage,
     },
   ].filter((item) => !item.permission || roleHasPermission(role, item.permission));
 

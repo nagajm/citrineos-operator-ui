@@ -38,3 +38,77 @@ export interface VsRfidTag {
   updatedAt: string;
 }
 
+export interface VsPlatformSettings {
+  gstRatePercent: number;
+  platformCommissionPercent: number;
+  sellerGstin: string | null;
+  sellerLegalName: string | null;
+  sellerAddress: string | null;
+  updatedAt: string;
+}
+
+export interface VsOperatorEarnings {
+  operatorId: number;
+  operatorName: string;
+  totalSessions: number;
+  totalKwh: number;
+  grossCollected: number;
+  gstCollected: number;
+  platformCommission: number;
+  payoutOwed: number;
+}
+
+export interface VsAdminDriver {
+  id: number;
+  phone: string;
+  name?: string | null;
+  email?: string | null;
+  isVerified: boolean;
+  createdAt: string;
+}
+
+export interface VsAdminDriverListResponse {
+  data: VsAdminDriver[];
+  total: number;
+  page: number;
+  limit: number;
+}
+
+export interface VsWalletTransaction {
+  id: number;
+  walletId: number;
+  amount: number | string;
+  type: 'credit' | 'debit';
+  description?: string;
+  referenceId?: string;
+  status: string;
+  createdAt: string;
+}
+
+export interface VsAdminWallet {
+  id: number;
+  driverId: number;
+  balance: number | string;
+  currency: string;
+  transactions: VsWalletTransaction[];
+}
+
+export interface VsAdminSession {
+  id: number;
+  transactionId?: string;
+  stationId: number;
+  ocppConnectionName?: string;
+  isActive: boolean;
+  chargingState?: string;
+  totalKwh?: number | string;
+  totalCost?: number | string;
+  amount?: number | string;
+  gstRatePercent?: number | string;
+  gstAmount?: number | string;
+  commissionRatePercent?: number | string;
+  commissionAmount?: number | string;
+  payoutAmount?: number | string;
+  startTime?: string;
+  endTime?: string;
+}
+
