@@ -21,3 +21,16 @@ export async function PATCH(req: NextRequest, { params }: { params: Promise<{ id
   const data = await res.json();
   return NextResponse.json(data, { status: res.status });
 }
+
+export async function DELETE(_req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
+  const res = await fetch(`${API}/admin/operators/${id}`, {
+    method: 'DELETE',
+    headers: await getAdminProxyHeaders(),
+  });
+  if (res.status >= 400) {
+    const data = await res.json().catch(() => ({ message: 'Failed to delete operator' }));
+    return NextResponse.json(data, { status: res.status });
+  }
+  return new NextResponse(null, { status: res.status });
+}

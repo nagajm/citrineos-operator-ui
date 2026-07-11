@@ -6,7 +6,7 @@ import { Button } from '@lib/client/components/ui/button';
 import { Card, CardContent, CardHeader } from '@lib/client/components/ui/card';
 import { Badge } from '@lib/client/components/ui/badge';
 import { heading2Style, pageMargin } from '@lib/client/styles/page';
-import { Copy, KeyRound, Pencil, Plus, PowerOff, Search, Zap } from 'lucide-react';
+import { Copy, KeyRound, Pencil, Plus, PowerOff, Search, Trash2, Zap } from 'lucide-react';
 import { Input } from '@lib/client/components/ui/input';
 import {
   Dialog,
@@ -29,6 +29,9 @@ export const OperatorsList = () => {
   const [submittingReset, setSubmittingReset] = useState(false);
   const [resetResult, setResetResult] = useState<{ name: string; password: string } | null>(null);
   const [error, setError] = useState('');
+  const [deleteTarget, setDeleteTarget] = useState<VsOperator | null>(null);
+  const [deleteError, setDeleteError] = useState('');
+  const [deleting, setDeleting] = useState(false);
 
   const loadOperators = () => {
     setLoading(true);
@@ -91,6 +94,26 @@ export const OperatorsList = () => {
       setPasswordError('Failed to reset password');
     } finally {
       setSubmittingReset(false);
+    }
+  };
+
+  const submitDelete = async () => {
+    if (!deleteTarget) return;
+    setDeleteError('');
+    setDeleting(true);
+    try {
+      const res = await fetch(`/api/zappo/operators/${deleteTarget.id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setDeleteTarget(null);
+        loadOperators();
+      } else {
+        const data = await res.json().catch(() => ({}));
+        setDeleteError(data.message ?? 'Failed to delete operator');
+      }
+    } catch {
+      setDeleteError('Failed to delete operator');
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -170,6 +193,15 @@ export const OperatorsList = () => {
                   <KeyRound className="size-4 mr-1" />
                   Reset Password
                 </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="text-destructive hover:text-destructive"
+                  onClick={() => { setDeleteTarget(op); setDeleteError(''); }}
+                >
+                  <Trash2 className="size-4 mr-1" />
+                  Delete
+                </Button>
               </div>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground flex gap-6">
@@ -203,6 +235,28 @@ export const OperatorsList = () => {
             </Button>
             <Button disabled={submittingReset} onClick={submitReset}>
               {passwordInput ? 'Set Password' : 'Generate & Reset'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete {deleteTarget?.name}?</DialogTitle>
+          </DialogHeader>
+          <p className="text-sm text-muted-foreground">
+            This permanently removes the operator account, including any RFID cards and driver
+            pricing overrides tied to it. This can't be undone — use Deactivate instead if you
+            just want to disable their login. Blocked if any stations are still assigned to them.
+          </p>
+          {deleteError && <p className="text-sm text-destructive">{deleteError}</p>}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteTarget(null)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" disabled={deleting} onClick={submitDelete}>
+              {deleting ? 'Deleting…' : 'Delete Permanently'}
             </Button>
           </DialogFooter>
         </DialogContent>
