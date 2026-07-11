@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import { Button } from '@lib/client/components/ui/button';
 import { Input } from '@lib/client/components/ui/input';
 import { Card, CardContent, CardHeader } from '@lib/client/components/ui/card';
+import { Switch } from '@lib/client/components/ui/switch';
+import { Label } from '@lib/client/components/ui/label';
 import { heading2Style, pageMargin } from '@lib/client/styles/page';
 import { cardHeaderFlex } from '@lib/client/styles/card';
 import { ChevronLeft } from 'lucide-react';
@@ -25,7 +27,9 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
     billingRate: '',
     minStartBalance: '',
     walletCutoff: '',
+    gstin: '',
   });
+  const [gstEnabled, setGstEnabled] = useState(false);
 
   useEffect(() => {
     fetch(`/api/zappo/operators/${operatorId}`)
@@ -38,7 +42,9 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
           billingRate: op.currentRate != null ? String(op.currentRate) : '',
           minStartBalance: op.minStartBalance != null ? String(op.minStartBalance) : '50',
           walletCutoff: op.walletCutoff != null ? String(op.walletCutoff) : '0',
+          gstin: op.gstin ?? '',
         });
+        setGstEnabled(!!op.gstEnabled);
       })
       .catch(() => setError('Failed to load operator'))
       .finally(() => setLoading(false));
@@ -49,13 +55,19 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSaving(true);
     setError('');
+    if (gstEnabled && !form.gstin.trim()) {
+      setError('GSTIN is required to enable GST for this operator');
+      return;
+    }
+    setSaving(true);
     try {
       const body: Record<string, unknown> = {
         name: form.name,
         phone: form.phone || undefined,
         company: form.company || undefined,
+        gstEnabled,
+        gstin: form.gstin.trim() || undefined,
       };
       if (form.billingRate !== '') {
         body.billingRate = parseFloat(form.billingRate);
@@ -146,6 +158,28 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
                 />
                 <p className="text-xs text-muted-foreground">Session auto-stops when balance drops to this level</p>
               </div>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">GST</p>
+            <p className="text-xs text-muted-foreground mb-3">
+              The operator owns the station and its electricity connection — they are the legal
+              supplier of the charging service to the driver, not Zappo. Only enable this once
+              they've confirmed their own GST registration.
+            </p>
+            <div className="flex items-center gap-2 mb-3">
+              <Switch id="gst-enabled" checked={gstEnabled} onCheckedChange={setGstEnabled} />
+              <Label htmlFor="gst-enabled" className="cursor-pointer">GST Registered</Label>
+            </div>
+            <div className="flex flex-col gap-1 max-w-xs">
+              <label className="text-sm font-medium">GSTIN</label>
+              <Input
+                value={form.gstin}
+                onChange={set('gstin')}
+                placeholder="e.g. 29AAAAA0000A1Z5"
+                disabled={!gstEnabled}
+              />
             </div>
           </div>
 

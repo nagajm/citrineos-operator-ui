@@ -5,6 +5,8 @@ export interface VsOperator {
   phone?: string;
   company?: string;
   isActive: boolean;
+  gstEnabled?: boolean;
+  gstin?: string | null;
   createdAt: string;
 }
 

@@ -157,6 +157,9 @@ export const OperatorsList = () => {
                 <Badge variant={op.isActive ? 'default' : 'secondary'}>
                   {op.isActive ? 'Active' : 'Inactive'}
                 </Badge>
+                {op.gstEnabled && (
+                  <Badge variant="secondary" title={op.gstin ?? undefined}>GST Registered</Badge>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <Button
