@@ -39,7 +39,7 @@ export const CrmTagsPage = () => {
   const [creating, setCreating] = useState(false);
 
   // Inline edit
-  const [editId, setEditId] = useState<string | null>(null);
+  const [editId, setEditId] = useState<number | null>(null);
   const [editName, setEditName] = useState('');
   const [editColor, setEditColor] = useState(PRESET_COLORS[0]);
   const [saving, setSaving] = useState(false);
@@ -91,7 +91,7 @@ export const CrmTagsPage = () => {
     } finally { setSaving(false); }
   };
 
-  const deleteTag = async (id: string, name: string) => {
+  const deleteTag = async (id: number, name: string) => {
     if (!window.confirm(`Delete tag "${name}"? It will be removed from all plans.`)) return;
     await fetch(`/api/zappo/crm/tags/${id}`, { method: 'DELETE' });
     load();

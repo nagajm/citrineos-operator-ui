@@ -47,7 +47,7 @@ export const CrmDocumentsPage = () => {
     }
   };
 
-  const deleteDoc = async (id: string) => {
+  const deleteDoc = async (id: number) => {
     await fetch(`/api/zappo/crm/documents/${id}`, { method: 'DELETE' });
     load();
   };

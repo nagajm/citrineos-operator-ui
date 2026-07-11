@@ -1,7 +1,7 @@
 export type LeadStage = 'new' | 'contacted' | 'demo' | 'proposal' | 'onboarding' | 'won' | 'lost';
 
 export interface CrmLead {
-  id: string;
+  id: number;
   name: string;
   phone?: string;
   email?: string;
@@ -35,7 +35,7 @@ export interface QuotationItem {
 
 export interface Quotation {
   id: number;
-  leadId: string;
+  leadId: number;
   quotationNumber?: string;
   title: string;
   status: 'draft' | 'sent' | 'accepted' | 'rejected';
@@ -50,11 +50,11 @@ export interface Quotation {
 }
 
 export interface CrmTask {
-  id: string;
+  id: number;
   title: string;
   description?: string;
   type: string;
-  leadId?: string;
+  leadId?: number;
   operatorId?: string;
   dueAt?: string;
   completedAt?: string;
@@ -62,18 +62,18 @@ export interface CrmTask {
 }
 
 export interface CrmComment {
-  id: string;
+  id: number;
   content: string;
   authorName?: string;
-  leadId?: string;
+  leadId?: number;
   operatorId?: string;
-  vendorId?: string;
-  meetingId?: string;
+  vendorId?: number;
+  meetingId?: number;
   createdAt: string;
 }
 
 export interface CrmDocument {
-  id: string;
+  id: number;
   type: 'file' | 'url' | 'text';
   name: string;
   description?: string;
@@ -82,15 +82,15 @@ export interface CrmDocument {
   size?: number;
   url?: string;
   content?: string;
-  leadId?: string;
+  leadId?: number;
   operatorId?: string;
-  vendorId?: string;
+  vendorId?: number;
   createdAt: string;
 }
 
 export interface KnowledgeFile {
-  id: string;
-  knowledgeId: string;
+  id: number;
+  knowledgeId: number;
   name: string;
   filename: string;
   mimeType?: string;
@@ -99,7 +99,7 @@ export interface KnowledgeFile {
 }
 
 export interface KnowledgeEntry {
-  id: string;
+  id: number;
   title: string;
   content?: string;
   links: Array<{ label?: string; url: string }>;
@@ -109,7 +109,7 @@ export interface KnowledgeEntry {
 }
 
 export interface Vendor {
-  id: string;
+  id: number;
   name: string;
   contactName?: string;
   phone?: string;
@@ -124,13 +124,13 @@ export interface Vendor {
 }
 
 export interface MeetingNote {
-  id: string;
+  id: number;
   title: string;
   content?: string;
   attendees?: string;
-  leadId?: string;
+  leadId?: number;
   operatorId?: string;
-  vendorId?: string;
+  vendorId?: number;
   meetingAt?: string;
   assigneeId?: number | null;
   createdAt: string;
@@ -138,14 +138,14 @@ export interface MeetingNote {
 }
 
 export interface CrmTag {
-  id: string;
+  id: number;
   name: string;
   color: string;
   createdAt: string;
 }
 
 export interface CrmPlan {
-  id: string;
+  id: number;
   title: string;
   description?: string;
   status: 'open' | 'in_progress' | 'done';
@@ -157,8 +157,8 @@ export interface CrmPlan {
 }
 
 export interface CrmProductSection {
-  id?: string;
-  productId?: string;
+  id?: number;
+  productId?: number;
   title: string;
   body?: string;
   order: number;
@@ -166,8 +166,8 @@ export interface CrmProductSection {
 }
 
 export interface CrmProductBomItem {
-  id?: string;
-  productId?: string;
+  id?: number;
+  productId?: number;
   description: string;
   hsnCode?: string;
   unit: string;
@@ -180,7 +180,7 @@ export interface CrmProductBomItem {
 }
 
 export interface CrmProduct {
-  id: string;
+  id: number;
   name: string;
   sku?: string;
   description?: string;

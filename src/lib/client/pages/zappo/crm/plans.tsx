@@ -109,7 +109,7 @@ function PlanCard({
 }: {
   plan: CrmPlan;
   onEdit: (p: CrmPlan) => void;
-  onDelete: (id: string) => void;
+  onDelete: (id: number) => void;
   compact?: boolean;
   usersMap: Record<number, CrmUser>;
   draggable?: boolean;
@@ -162,7 +162,7 @@ function PlanCard({
 
 
 // ─── inline edit / create form ────────────────────────────────────────────────
-interface PlanFormState { title: string; description: string; status: string; dueAt: string; assigneeId: number | null; tagIds: string[]; }
+interface PlanFormState { title: string; description: string; status: string; dueAt: string; assigneeId: number | null; tagIds: number[]; }
 function EditForm({
   form, onChange, onSave, onCancel, saving, users, tags,
 }: {
@@ -174,7 +174,7 @@ function EditForm({
   users: CrmUser[];
   tags: CrmTag[];
 }) {
-  const toggleTag = (id: string) => {
+  const toggleTag = (id: number) => {
     const next = form.tagIds.includes(id) ? form.tagIds.filter((t) => t !== id) : [...form.tagIds, id];
     onChange({ ...form, tagIds: next });
   };
@@ -245,7 +245,7 @@ export const CrmPlansPage = () => {
   const [users, setUsers] = useState<CrmUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [filterTagId, setFilterTagId] = useState('');
+  const [filterTagId, setFilterTagId] = useState<number | ''>('');
   const [filterStatus, setFilterStatus] = useState('');
   const [filterUserId, setFilterUserId] = useState<number | ''>('');
   const [sortKey, setSortKey] = useState<SortKey>('dueAt_asc');
@@ -253,9 +253,9 @@ export const CrmPlansPage = () => {
   const [showNew, setShowNew] = useState(false);
   const [form, setForm] = useState<PlanFormState>(BLANK_FORM);
   const [saving, setSaving] = useState(false);
-  const [editing, setEditing] = useState<string | null>(null);
+  const [editing, setEditing] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<PlanFormState>(BLANK_FORM);
-  const [draggingId, setDraggingId] = useState<string | null>(null);
+  const [draggingId, setDraggingId] = useState<number | null>(null);
   const [dragOverCol, setDragOverCol] = useState<Status | null>(null);
 
   const usersMap = useMemo(() => {
@@ -313,7 +313,7 @@ export const CrmPlansPage = () => {
     } finally { setSaving(false); }
   };
 
-  const savePlan = async (id: string) => {
+  const savePlan = async (id: number) => {
     setSaving(true);
     try {
       await fetch(`/api/zappo/crm/plans/${id}`, {
@@ -326,7 +326,7 @@ export const CrmPlansPage = () => {
     } finally { setSaving(false); }
   };
 
-  const moveToStatus = async (id: string, status: Status) => {
+  const moveToStatus = async (id: number, status: Status) => {
     const prev = plans;
     setPlans((ps) => ps.map((p) => (p.id === id ? { ...p, status } : p)));
     try {
@@ -343,20 +343,20 @@ export const CrmPlansPage = () => {
   const handleDragStart = (e: React.DragEvent, plan: CrmPlan) => {
     setDraggingId(plan.id);
     e.dataTransfer.effectAllowed = 'move';
-    e.dataTransfer.setData('text/plain', plan.id);
+    e.dataTransfer.setData('text/plain', String(plan.id));
   };
 
   const handleDrop = (e: React.DragEvent, col: Status) => {
     e.preventDefault();
     setDragOverCol(null);
-    const id = draggingId ?? e.dataTransfer.getData('text/plain');
+    const id = draggingId ?? Number(e.dataTransfer.getData('text/plain'));
     setDraggingId(null);
     if (!id) return;
     const plan = plans.find((p) => p.id === id);
     if (plan && plan.status !== col) moveToStatus(id, col);
   };
 
-  const deletePlan = async (id: string) => {
+  const deletePlan = async (id: number) => {
     await fetch(`/api/zappo/crm/plans/${id}`, { method: 'DELETE' });
     load();
   };

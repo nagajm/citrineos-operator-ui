@@ -43,13 +43,13 @@ export const CrmMeetingDetailPage = ({ id }: { id: string }) => {
     if (!comment.trim()) return;
     setSaving(true);
     try {
-      await fetch('/api/zappo/crm/comments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: comment, meetingId: id }) });
+      await fetch('/api/zappo/crm/comments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: comment, meetingId: Number(id) }) });
       setComment('');
       load();
     } finally { setSaving(false); }
   };
 
-  const deleteComment = async (cid: string) => {
+  const deleteComment = async (cid: number) => {
     await fetch(`/api/zappo/crm/comments/${cid}`, { method: 'DELETE' });
     load();
   };

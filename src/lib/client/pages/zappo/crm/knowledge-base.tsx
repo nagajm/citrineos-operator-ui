@@ -177,8 +177,8 @@ function KnowledgeCard({
 }: {
   entry: KnowledgeEntry;
   onEdit: (e: KnowledgeEntry) => void;
-  onDelete: (id: string) => void;
-  onDeleteFile: (entryId: string, fileId: string) => void;
+  onDelete: (id: number) => void;
+  onDeleteFile: (entryId: number, fileId: number) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const longContent = (entry.content?.length ?? 0) > 280;
@@ -290,7 +290,7 @@ export const CrmKnowledgeBasePage = () => {
 
   useEffect(() => { load(); }, []);
 
-  const uploadFiles = async (entryId: string, files: File[]) => {
+  const uploadFiles = async (entryId: number, files: File[]) => {
     for (const file of files) {
       const fd = new FormData();
       fd.append('file', file);
@@ -336,14 +336,14 @@ export const CrmKnowledgeBasePage = () => {
     } finally { setSaving(false); }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: number) => {
     const entry = entries.find((e) => e.id === id);
     if (!window.confirm(`Delete "${entry?.title}"?`)) return;
     await fetch(`/api/zappo/crm/knowledge/${id}`, { method: 'DELETE' });
     load();
   };
 
-  const handleDeleteFile = async (entryId: string, fileId: string) => {
+  const handleDeleteFile = async (entryId: number, fileId: number) => {
     await fetch(`/api/zappo/crm/knowledge/${entryId}/files/${fileId}`, { method: 'DELETE' });
     load();
   };

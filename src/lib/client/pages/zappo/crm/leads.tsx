@@ -87,7 +87,7 @@ export const CrmLeadsPage = () => {
   const handleSearch = (v: string) => { setSearch(v); load(v, stageFilter); };
   const handleStage = (v: string) => { setStageFilter(v); load(search, v); };
 
-  const deleteLead = async (id: string) => {
+  const deleteLead = async (id: number) => {
     if (!window.confirm('Delete this lead? This cannot be undone.')) return;
     await fetch(`/api/zappo/crm/leads/${id}`, { method: 'DELETE' });
     load();

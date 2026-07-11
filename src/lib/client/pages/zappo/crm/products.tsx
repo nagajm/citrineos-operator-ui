@@ -9,9 +9,9 @@ import { Plus, Pencil, Trash2, PackageOpen, ChevronUp, ChevronDown, X, Upload } 
 import type { CrmProduct, ProductWithDetails } from '@lib/zappo/crm-types';
 
 // ── local form types ──────────────────────────────────────────────────────────
-interface SectionRow { id?: string; title: string; body: string; }
+interface SectionRow { id?: number; title: string; body: string; }
 interface BomRow {
-  id?: string; description: string; hsnCode: string; unit: string;
+  id?: number; description: string; hsnCode: string; unit: string;
   qty: number; unitCost: string; unitPrice: string; gstPercent: number;
 }
 interface ProductForm {
@@ -75,7 +75,7 @@ export const CrmProductsPage = () => {
   const [products, setProducts] = useState<CrmProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
-  const [editId, setEditId] = useState<string | null>(null);
+  const [editId, setEditId] = useState<number | null>(null);
   const [form, setForm] = useState<ProductForm>(BLANK_FORM);
   const [tab, setTab] = useState<'info' | 'sections' | 'bom'>('info');
   const [saving, setSaving] = useState(false);
@@ -103,7 +103,7 @@ export const CrmProductsPage = () => {
     setShowForm(true);
   };
 
-  const openEdit = async (id: string) => {
+  const openEdit = async (id: number) => {
     const r = await fetch(`/api/zappo/crm/products/${id}`);
     const d: ProductWithDetails = await r.json();
     setForm({
@@ -178,7 +178,7 @@ export const CrmProductsPage = () => {
     }
   };
 
-  const deleteProduct = async (id: string) => {
+  const deleteProduct = async (id: number) => {
     if (!confirm('Delete this product and all its BOM items?')) return;
     await fetch(`/api/zappo/crm/products/${id}`, { method: 'DELETE' });
     loadProducts();

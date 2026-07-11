@@ -75,7 +75,7 @@ export const CrmLeadDetailPage = ({ id }: { id: string }) => {
     if (!comment.trim()) return;
     setSaving(true);
     try {
-      await fetch('/api/zappo/crm/comments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: comment, leadId: id }) });
+      await fetch('/api/zappo/crm/comments', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ content: comment, leadId: Number(id) }) });
       setComment('');
       load();
     } finally { setSaving(false); }
@@ -85,7 +85,7 @@ export const CrmLeadDetailPage = ({ id }: { id: string }) => {
     if (!taskTitle.trim()) return;
     setSaving(true);
     try {
-      await fetch('/api/zappo/crm/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: taskTitle, leadId: id, dueAt: taskDue || undefined, type: 'call' }) });
+      await fetch('/api/zappo/crm/tasks', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ title: taskTitle, leadId: Number(id), dueAt: taskDue || undefined, type: 'call' }) });
       setTaskTitle('');
       setTaskDue('');
       load();
@@ -98,7 +98,7 @@ export const CrmLeadDetailPage = ({ id }: { id: string }) => {
     load();
   };
 
-  const deleteComment = async (cid: string) => {
+  const deleteComment = async (cid: number) => {
     await fetch(`/api/zappo/crm/comments/${cid}`, { method: 'DELETE' });
     load();
   };
