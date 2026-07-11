@@ -94,7 +94,7 @@ jobs:
             ENVEOF
             docker compose pull citrine-ui
             docker compose up -d citrine-ui
-            docker image prune -f
+            docker image prune -f || true
 
 
 
