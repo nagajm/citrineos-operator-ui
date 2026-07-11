@@ -13,7 +13,7 @@ export interface CrmLead {
   expectedStations?: number;
   notes?: string;
   stationLocation?: string;
-  convertedOperatorId?: string;
+  convertedOperatorId?: number;
   pendingTasks?: number;
   assigneeId?: number | null;
   createdAt: string;
@@ -55,7 +55,7 @@ export interface CrmTask {
   description?: string;
   type: string;
   leadId?: number;
-  operatorId?: string;
+  operatorId?: number;
   dueAt?: string;
   completedAt?: string;
   createdAt: string;
@@ -66,7 +66,7 @@ export interface CrmComment {
   content: string;
   authorName?: string;
   leadId?: number;
-  operatorId?: string;
+  operatorId?: number;
   vendorId?: number;
   meetingId?: number;
   createdAt: string;
@@ -83,7 +83,7 @@ export interface CrmDocument {
   url?: string;
   content?: string;
   leadId?: number;
-  operatorId?: string;
+  operatorId?: number;
   vendorId?: number;
   createdAt: string;
 }
@@ -129,7 +129,7 @@ export interface MeetingNote {
   content?: string;
   attendees?: string;
   leadId?: number;
-  operatorId?: string;
+  operatorId?: number;
   vendorId?: number;
   meetingAt?: string;
   assigneeId?: number | null;

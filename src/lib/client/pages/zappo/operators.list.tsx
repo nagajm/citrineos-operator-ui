@@ -22,7 +22,7 @@ export const OperatorsList = () => {
   const [operators, setOperators] = useState<VsOperator[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
-  const [toggling, setToggling] = useState<string | null>(null);
+  const [toggling, setToggling] = useState<number | null>(null);
   const [resetTarget, setResetTarget] = useState<VsOperator | null>(null);
   const [passwordInput, setPasswordInput] = useState('');
   const [passwordError, setPasswordError] = useState('');

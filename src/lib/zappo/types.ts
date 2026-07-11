@@ -1,5 +1,5 @@
 export interface VsOperator {
-  id: string;
+  id: number;
   name: string;
   email: string;
   phone?: string;
@@ -30,7 +30,7 @@ export interface VsRfidTag {
   id: number;
   idToken: string;
   label?: string;
-  operatorId?: string;
+  operatorId?: number;
   linkedDriverId?: string;
   cardType: VsRfidCardType;
   isActive: boolean;
