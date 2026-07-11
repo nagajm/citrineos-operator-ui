@@ -215,7 +215,7 @@ export const RfidTagsPage = () => {
   const [superAdminError, setSuperAdminError] = useState('');
 
   const [driverToken, setDriverToken] = useState<string | null>(null);
-  const [claimingId, setClaimingId] = useState<string | null>(null);
+  const [claimingId, setClaimingId] = useState<number | null>(null);
 
   useEffect(() => {
     fetch('/api/zappo/operators')

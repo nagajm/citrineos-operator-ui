@@ -27,7 +27,7 @@ export interface VsCreateOperatorBody {
 export type VsRfidCardType = 'owner' | 'customer' | 'super_admin';
 
 export interface VsRfidTag {
-  id: string;
+  id: number;
   idToken: string;
   label?: string;
   operatorId?: string;
