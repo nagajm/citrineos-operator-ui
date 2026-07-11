@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader } from '@lib/client/components/ui/card';
 import { Input } from '@lib/client/components/ui/input';
 import { heading2Style, pageMargin } from '@lib/client/styles/page';
@@ -10,6 +11,7 @@ import type { VsOperatorEarnings } from '@lib/zappo/types';
 const inr = (n: number) => `₹${n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 
 export const OperatorEarningsList = () => {
+  const router = useRouter();
   const [rows, setRows] = useState<VsOperatorEarnings[]>([]);
   const [search, setSearch] = useState('');
   const [loading, setLoading] = useState(true);
@@ -82,7 +84,11 @@ export const OperatorEarningsList = () => {
           </CardHeader>
           <CardContent className="flex flex-col divide-y">
             {filtered.map((r) => (
-              <div key={r.operatorId} className="grid grid-cols-6 gap-4 py-3 text-sm items-center">
+              <div
+                key={r.operatorId}
+                className="grid grid-cols-6 gap-4 py-3 text-sm items-center cursor-pointer hover:bg-accent/40 rounded-md -mx-2 px-2"
+                onClick={() => router.push(`/zappo/operator-earnings/${r.operatorId}`)}
+              >
                 <div className="col-span-2">
                   <div className="font-medium">{r.operatorName}</div>
                   <div className="text-xs text-muted-foreground">

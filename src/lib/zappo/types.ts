@@ -112,3 +112,51 @@ export interface VsAdminSession {
   endTime?: string;
 }
 
+export interface VsStatementLine {
+  sessionId: number;
+  stationId: number;
+  startedAt: string;
+  endedAt: string | null;
+  totalKwh: number;
+  ratePerKwh: number;
+  amount: number;
+  gstRatePercent: number;
+  gstAmount: number;
+  totalAmount: number;
+  commissionRatePercent: number;
+  commissionAmount: number;
+  payoutAmount: number;
+}
+
+export interface VsStatementTotals {
+  totalSessions: number;
+  totalKwh: number;
+  grossAmount: number;
+  gstAmount: number;
+  totalAmount: number;
+  commissionAmount: number;
+  payoutAmount: number;
+}
+
+export interface VsOperatorStatement {
+  operatorId: number;
+  startDate: string | null;
+  endDate: string | null;
+  transactions: VsStatementLine[];
+  totals: VsStatementTotals;
+}
+
+export interface VsOperatorInvoice {
+  id: number;
+  invoiceNumber: string;
+  operatorId: number;
+  periodStart: string;
+  periodEnd: string;
+  totalKwh: number | string;
+  grossAmount: number | string;
+  gstAmount: number | string;
+  commissionAmount: number | string;
+  payoutAmount: number | string;
+  generatedAt: string;
+}
+
