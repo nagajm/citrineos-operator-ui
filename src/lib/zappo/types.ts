@@ -7,6 +7,7 @@ export interface VsOperator {
   isActive: boolean;
   gstEnabled?: boolean;
   gstin?: string | null;
+  commissionPercent?: number | null;
   createdAt: string;
 }
 

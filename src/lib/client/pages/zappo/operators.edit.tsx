@@ -28,8 +28,10 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
     minStartBalance: '',
     walletCutoff: '',
     gstin: '',
+    commissionPercent: '',
   });
   const [gstEnabled, setGstEnabled] = useState(false);
+  const [platformDefaultCommission, setPlatformDefaultCommission] = useState<number | null>(null);
 
   useEffect(() => {
     fetch(`/api/zappo/operators/${operatorId}`)
@@ -43,11 +45,16 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
           minStartBalance: op.minStartBalance != null ? String(op.minStartBalance) : '50',
           walletCutoff: op.walletCutoff != null ? String(op.walletCutoff) : '0',
           gstin: op.gstin ?? '',
+          commissionPercent: op.commissionPercent != null ? String(op.commissionPercent) : '',
         });
         setGstEnabled(!!op.gstEnabled);
       })
       .catch(() => setError('Failed to load operator'))
       .finally(() => setLoading(false));
+    fetch('/api/zappo/settings')
+      .then((r) => r.json())
+      .then((s) => setPlatformDefaultCommission(s.platformCommissionPercent ?? null))
+      .catch(() => {});
   }, [operatorId]);
 
   const set = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) =>
@@ -68,6 +75,9 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
         company: form.company || undefined,
         gstEnabled,
         gstin: form.gstin.trim() || undefined,
+        // Explicit null (not omitted) — clears an existing override back to the platform
+        // default rather than leaving whatever was there untouched.
+        commissionPercent: form.commissionPercent.trim() === '' ? null : parseFloat(form.commissionPercent),
       };
       if (form.billingRate !== '') {
         body.billingRate = parseFloat(form.billingRate);
@@ -158,6 +168,26 @@ export const OperatorsEdit = ({ operatorId }: Props) => {
                 />
                 <p className="text-xs text-muted-foreground">Session auto-stops when balance drops to this level</p>
               </div>
+            </div>
+          </div>
+
+          <div>
+            <p className="text-sm font-semibold text-muted-foreground mb-3 uppercase tracking-wide">Commission</p>
+            <p className="text-xs text-muted-foreground mb-3">
+              Zappo's cut of this operator's energy revenue, calculated before GST. Leave blank
+              to use the platform default{platformDefaultCommission != null ? ` (${platformDefaultCommission}%)` : ''}.
+            </p>
+            <div className="flex flex-col gap-1 max-w-xs">
+              <label className="text-sm font-medium">Commission Override (%)</label>
+              <Input
+                type="number"
+                step="0.01"
+                min="0"
+                max="100"
+                value={form.commissionPercent}
+                onChange={set('commissionPercent')}
+                placeholder={platformDefaultCommission != null ? `${platformDefaultCommission} (default)` : 'Platform default'}
+              />
             </div>
           </div>
 

@@ -160,6 +160,11 @@ export const OperatorsList = () => {
                 {op.gstEnabled && (
                   <Badge variant="secondary" title={op.gstin ?? undefined}>GST Registered</Badge>
                 )}
+                {op.commissionPercent != null && (
+                  <Badge variant="secondary" title="Overrides the platform default commission rate">
+                    {op.commissionPercent}% commission
+                  </Badge>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <Button
