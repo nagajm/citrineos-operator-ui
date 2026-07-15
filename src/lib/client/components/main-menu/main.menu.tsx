@@ -7,6 +7,7 @@ import { Logo } from '@lib/client/components/title';
 import { cn } from '@lib/utils/cn';
 import {
   ArrowLeftRight,
+  Calculator,
   Car,
   ChevronLeft,
   ChevronRight,
@@ -50,6 +51,7 @@ export enum MenuSection {
   ZAPPO_OPERATOR_EARNINGS = 'zappo/operator-earnings',
   ZAPPO_DRIVERS = 'zappo/drivers',
   ZAPPO_SETTINGS = 'zappo/settings',
+  ZAPPO_ACCOUNTING = 'zappo/accounting',
 }
 
 export interface MainMenuProps {
@@ -164,7 +166,15 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
       icon: <SettingsIcon className={sidebarIconSize} />,
       permission: Permission.FinanceManage,
     },
-  ].filter((item) => !item.permission || roleHasPermission(role, item.permission));
+    {
+      key: `/${MenuSection.ZAPPO_ACCOUNTING}`,
+      label: 'Accounting',
+      icon: <Calculator className={sidebarIconSize} />,
+      permission: Permission.FinanceManage,
+    },
+  ].filter(
+    (item) => !item.permission || roleHasPermission(role, item.permission),
+  );
 
   return (
     <>
@@ -184,7 +194,9 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
         <nav className="flex-1 overflow-y-auto py-2">
           <ul className="space-y-1 px-3">
             {mainMenuItems.map((item) => {
-              const isActive = pathname ? pathname.startsWith(item.key) : `/${activeSection}` === item.key;
+              const isActive = pathname
+                ? pathname.startsWith(item.key)
+                : `/${activeSection}` === item.key;
               return (
                 <li key={item.key}>
                   <Link
@@ -216,7 +228,8 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
             className={cn(
               'flex items-center gap-2 px-4 py-2 rounded-md text-sm transition-colors',
               'hover:bg-accent hover:text-accent-foreground text-muted-foreground',
-              pathname?.startsWith('/help') && 'bg-accent text-accent-foreground font-medium',
+              pathname?.startsWith('/help') &&
+                'bg-accent text-accent-foreground font-medium',
               collapsed && 'justify-center px-2',
             )}
             title="Help"

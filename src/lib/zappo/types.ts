@@ -163,3 +163,63 @@ export interface VsOperatorInvoice {
   generatedAt: string;
 }
 
+export type VsLedgerAccountType =
+  | 'asset'
+  | 'liability'
+  | 'equity'
+  | 'revenue'
+  | 'expense';
+
+export interface VsLedgerAccount {
+  id: number;
+  code: string;
+  name: string;
+  type: VsLedgerAccountType;
+  isActive: boolean;
+}
+
+export interface VsJournalEntryLine {
+  account: string;
+  accountName: string;
+  debit: number | string;
+  credit: number | string;
+}
+
+export interface VsJournalEntry {
+  id: number;
+  date: string;
+  description: string;
+  source: string | null;
+  sourceId: string | null;
+  lines: VsJournalEntryLine[];
+}
+
+export interface VsTrialBalanceRow {
+  code: string;
+  name: string;
+  type: VsLedgerAccountType;
+  totalDebit: number;
+  totalCredit: number;
+  balance: number;
+}
+
+export interface VsProfitAndLoss {
+  from: string;
+  to: string;
+  revenue: { code: string; name: string; amount: number }[];
+  expenses: { code: string; name: string; amount: number }[];
+  totalRevenue: number;
+  totalExpenses: number;
+  netIncome: number;
+}
+
+export interface VsBalanceSheet {
+  asOf: string;
+  assets: VsTrialBalanceRow[];
+  liabilities: VsTrialBalanceRow[];
+  equity: VsTrialBalanceRow[];
+  totalAssets: number;
+  totalLiabilities: number;
+  totalEquity: number;
+  balanced: boolean;
+}
