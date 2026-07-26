@@ -6,6 +6,7 @@
 import { Logo } from '@lib/client/components/title';
 import { cn } from '@lib/utils/cn';
 import {
+  AlertTriangle,
   ArrowLeftRight,
   Calculator,
   Car,
@@ -52,6 +53,7 @@ export enum MenuSection {
   ZAPPO_DRIVERS = 'zappo/drivers',
   ZAPPO_SETTINGS = 'zappo/settings',
   ZAPPO_ACCOUNTING = 'zappo/accounting',
+  ZAPPO_ALERTS = 'zappo/alerts',
 }
 
 export interface MainMenuProps {
@@ -171,6 +173,12 @@ export const MainMenu = ({ activeSection }: MainMenuProps) => {
       label: 'Accounting',
       icon: <Calculator className={sidebarIconSize} />,
       permission: Permission.FinanceManage,
+    },
+    {
+      key: `/${MenuSection.ZAPPO_ALERTS}`,
+      label: 'Alert Messages',
+      icon: <AlertTriangle className={sidebarIconSize} />,
+      permission: Permission.AlertsManage,
     },
   ].filter(
     (item) => !item.permission || roleHasPermission(role, item.permission),

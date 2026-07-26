@@ -11,6 +11,7 @@ export enum Permission {
   RfidManage = 'rfid:manage',
   FinanceManage = 'finance:manage',
   DriversView = 'drivers:view',
+  AlertsManage = 'alerts:manage',
 }
 
 export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
@@ -22,12 +23,21 @@ export const ROLE_PERMISSIONS: Record<string, Permission[]> = {
     Permission.CrmManage,
     Permission.RfidManage,
     Permission.DriversView,
+    Permission.AlertsManage,
   ],
-  ops: [Permission.StationsView, Permission.AuthorizationsManage, Permission.RfidManage, Permission.DriversView],
+  ops: [
+    Permission.StationsView,
+    Permission.AuthorizationsManage,
+    Permission.RfidManage,
+    Permission.DriversView,
+  ],
   sales: [Permission.CrmManage],
 };
 
-export function roleHasPermission(role: string | undefined | null, permission: Permission): boolean {
+export function roleHasPermission(
+  role: string | undefined | null,
+  permission: Permission,
+): boolean {
   if (!role) return false;
   return (ROLE_PERMISSIONS[role] ?? []).includes(permission);
 }

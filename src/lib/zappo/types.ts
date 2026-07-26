@@ -223,3 +223,28 @@ export interface VsBalanceSheet {
   totalEquity: number;
   balanced: boolean;
 }
+
+export type VsAlertSeverity = 'ok' | 'warning' | 'failed';
+export type VsDriverAction =
+  | 'none'
+  | 'retry'
+  | 'reconnect'
+  | 'try_other'
+  | 'wait'
+  | 'support';
+
+export interface VsAlertCatalogEntry {
+  id: number;
+  source: 'ocpp' | 'vendor' | 'platform';
+  vendorId: string;
+  code: string;
+  severity: VsAlertSeverity;
+  category: string;
+  driverMessage: string | null;
+  driverAction: VsDriverAction;
+  ownerMessage: string | null;
+  isSensitive: boolean;
+  isCurated: boolean;
+  firstSeenAt: string | null;
+  lastSeenAt: string | null;
+}
