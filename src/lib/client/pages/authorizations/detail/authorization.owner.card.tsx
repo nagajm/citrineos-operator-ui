@@ -35,7 +35,7 @@ export const AuthorizationOwnerCard = ({
   authorizationId: number | string;
 }) => {
   const { data, isLoading } = useQuery<EnrichedAuthorization>({
-    queryKey: ['voltstation', 'authorizations', authorizationId],
+    queryKey: ['zappo', 'authorizations', authorizationId],
     queryFn: async () => {
       const res = await fetch(`/api/zappo/authorizations/${authorizationId}`);
       if (!res.ok) throw new Error('Failed to load owner info');

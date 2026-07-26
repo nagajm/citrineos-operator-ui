@@ -2,7 +2,7 @@
 //
 // SPDX-License-Identifier: Apache-2.0
 //
-// DATA SOURCE: VoltStation API (ev-csms-api), NOT Hasura.
+// DATA SOURCE: Zappo API (ev-csms-api), NOT Hasura.
 //
 // WHY: The Authorizations table holds raw OCPP tokens.  To show who *owns* a token we need a
 // JOIN across CitrineOS tables (Authorizations) and our own tables (drivers, driver_vehicles).
@@ -109,7 +109,7 @@ export const AuthorizationsList = () => {
   const [page, setPage] = useState(1);
 
   const { data, isLoading, error } = useQuery<AuthorizationsPage>({
-    queryKey: ['voltstation', 'authorizations', { search, page }],
+    queryKey: ['zappo', 'authorizations', { search, page }],
     queryFn: async () => {
       const params = new URLSearchParams({ page: String(page), limit: String(PAGE_SIZE) });
       if (search) params.set('search', search);

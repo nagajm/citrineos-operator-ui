@@ -1,4 +1,4 @@
-﻿// VoltStation proxy — authorizations list with enriched owner data.
+﻿// Zappo proxy — authorizations list with enriched owner data.
 //
 // WHY this exists instead of querying Hasura directly:
 //   The Authorizations table stores raw OCPP tokens.  Hasura can expose the table but has no
@@ -8,7 +8,7 @@
 //
 // ARCHITECTURE RULE (do not revert to Hasura for this resource):
 //   Hasura → CitrineOS OCPP protocol data only (Transactions, ChargingStations, Locations, …)
-//   ev-csms-api → enriched / business data that crosses the CitrineOS / VoltStation boundary
+//   ev-csms-api → enriched / business data that crosses the CitrineOS / Zappo boundary
 //   See CLAUDE.md "Operator UI Data Source Architecture" for the full decision record.
 
 import { type NextRequest, NextResponse } from 'next/server';

@@ -43,7 +43,7 @@ import { parseJwt } from '@lib/utils/jwt';
 
 const keycloakServerUrl = config.keycloakServerUrl || config.keycloakUrl;
 const authProvider = config.authProvider;
-const ZAPPO_API = process.env.ZAPPO_API_URL ?? process.env.VOLTSTATION_API_URL ?? 'http://65.0.157.6:3001/api/v1';
+const ZAPPO_API = process.env.ZAPPO_API_URL ?? 'http://65.0.157.6:3001/api/v1';
 
 /**
  * Refreshes an expired access token using the refresh token
