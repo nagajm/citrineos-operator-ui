@@ -5,7 +5,9 @@ import { pageMargin } from '@lib/client/styles/page';
 import {
   BookOpen,
   ChevronRight,
+  ClipboardList,
   Cpu,
+  FileDown,
   HelpCircle,
   Settings,
   Terminal,
@@ -13,7 +15,7 @@ import {
   Zap,
 } from 'lucide-react';
 import Link from 'next/link';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { cn } from '@lib/utils/cn';
 
 interface Section {
@@ -107,6 +109,176 @@ const Table = ({
   </div>
 );
 
+const Shot = ({ src, alt }: { src: string; alt: string }) => (
+  // eslint-disable-next-line @next/next/no-img-element
+  <img src={`/help/owner-onboarding/${src}`} alt={alt} className="rounded-md border border-border my-3 max-w-full" />
+);
+
+// Mirrors the "Station Owner Onboarding Guide" doc (2026-10-18). The PDF in /public/help is an
+// export of that doc — if the steps here change, re-export the PDF so the two don't drift apart.
+const ownerOnboarding: Section = {
+  id: 'owner-onboarding',
+  icon: <ClipboardList className="size-4" />,
+  title: 'Station Owner Onboarding',
+  content: (
+    <div className="space-y-4">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <p className="text-muted-foreground max-w-2xl">
+          A new station owner goes live in seven steps: location, station, owner account,
+          assignment, charger connection, pricing, then a test charge. About 30 minutes once you
+          have the details below.
+        </p>
+        <a
+          href="/help/station-owner-onboarding-guide.pdf"
+          download
+          className="inline-flex items-center gap-2 rounded-md border border-border px-3 py-2 text-sm font-medium hover:bg-muted"
+        >
+          <FileDown className="size-4" /> Download PDF
+        </a>
+      </div>
+
+      <h3 className="font-semibold text-base">Collect before you start</h3>
+      <Table
+        headers={['What', 'Why you need it']}
+        rows={[
+          ['Site name, full address, GPS coordinates', 'Creates the location drivers see on the map'],
+          ["Charger's OCPP ID (the charge point ID set inside the charger)", "Must match the station name exactly, or the charger can't connect"],
+          ["Owner's name, email, phone, company", 'Creates their Zappo Hub login'],
+          ["Agreed price per kWh and Zappo's commission", 'Sets what drivers pay and what the owner earns'],
+          ["Owner's GSTIN, if GST-registered", 'Adds GST to driver bills'],
+        ]}
+      />
+
+      <h3 className="font-semibold text-base pt-2">Step 1 — Add the location</h3>
+      <p className="text-sm text-muted-foreground">
+        Go to <strong>Locations → + Add Location</strong>.
+      </p>
+      <Shot src="02-location-new.png" alt="Create Location form" />
+      <Step n={1} title="Name, address, city, state, postal code, country (India)">
+        <p>The name is what drivers see, e.g. &quot;Zappo Charging Point, Musiri&quot;.</p>
+      </Step>
+      <Step n={2} title="Latitude and longitude — replace the defaults">
+        <p>
+          The form starts at 36.7783, -119.4179, which is California. Copy the real point from
+          Google Maps (right-click the site → click the coordinates).
+        </p>
+      </Step>
+      <Step n={3} title="Time zone">
+        <p>Change <Code>UTC</Code> to <Code>Asia/Kolkata</Code>.</p>
+      </Step>
+      <Step n={4} title="Parking type, facilities, opening hours, then Save">
+        <p>Switch on <strong>24/7 Operation</strong>, or add the regular hours.</p>
+      </Step>
+      <Note type="warn">
+        Address search and the map don&apos;t load right now (Google Maps key issue). Fill every
+        field by hand and double-check the coordinates — a wrong point puts the station in the
+        wrong place in the driver app.
+      </Note>
+
+      <h3 className="font-semibold text-base pt-2">Step 2 — Add the charging station</h3>
+      <p className="text-sm text-muted-foreground">
+        One station = one physical charger. Go to{' '}
+        <strong>Charging Stations → + Add Charging Station</strong>.
+      </p>
+      <Shot src="03-station-new.png" alt="Create Charging Station form" />
+      <Step n={1} title="Name = the charger's OCPP ID, exactly">
+        <p>
+          Type it exactly as set inside the charger — same capitals, no extra characters (e.g.{' '}
+          <Code>L2001983</Code>). Don&apos;t add the gun number: <Code>L2002337</Code>, not{' '}
+          <Code>L2002337-1</Code>. If it doesn&apos;t match, the charger can&apos;t connect.
+        </p>
+      </Step>
+      <Step n={2} title="Location, then Save">
+        <p>
+          Pick the location from Step 1. Leave both checkboxes ticked. Connectors (guns) appear
+          by themselves within a few minutes of the charger first connecting.
+        </p>
+      </Step>
+
+      <h3 className="font-semibold text-base pt-2">Step 3 — Create the owner account</h3>
+      <p className="text-sm text-muted-foreground">
+        This is the owner&apos;s Zappo Hub login. Go to <strong>Operators → New Operator</strong>.
+        Skip this step if the owner already has an account.
+      </p>
+      <Shot src="01-owner-new.png" alt="New Operator form" />
+      <Step n={1} title="Name, email, phone, company">
+        <p>The email is their Zappo Hub username. Email and phone must each be unique.</p>
+      </Step>
+      <Step n={2} title="Password (8+ characters)">
+        <p>Set a temporary one and share it privately with the owner, never in a group chat.</p>
+      </Step>
+      <Step n={3} title="Initial billing rate (₹/kWh), then Create Operator">
+        <p>The price drivers pay per kWh at all of this owner&apos;s stations.</p>
+      </Step>
+
+      <h3 className="font-semibold text-base pt-2">Step 4 — Assign the station to the owner</h3>
+      <p className="text-sm text-muted-foreground">
+        Go to <strong>Operators</strong>, find the owner, click <strong>Assign Station</strong>,
+        pick the station and click <strong>Assign</strong>.
+      </p>
+      <Shot src="04-owner-assign.png" alt="Assign Stations page" />
+      <Note type="warn">
+        Until it is assigned, the station&apos;s price is ₹0 — drivers charge there for free and
+        nobody earns. Assign each station to one owner only: the list also shows stations already
+        assigned to other owners, and nothing stops a double assignment.
+      </Note>
+
+      <h3 className="font-semibold text-base pt-2">Step 5 — Connect the charger</h3>
+      <Table
+        headers={['Charger setting', 'Value']}
+        rows={[
+          ['Central system / OCPP server URL', 'ws://65.0.157.6:8081/'],
+          ['Charge point ID', 'The OCPP ID used as the station Name in Step 2'],
+          ['Protocol', 'OCPP 1.6J, or 2.0.1 if the charger supports it'],
+          ['Security / password', 'None'],
+        ]}
+      />
+      <p className="text-sm text-muted-foreground">
+        Some chargers want the ID on the end of the URL (<Code>ws://65.0.157.6:8081/L2001983</Code>)
+        instead of a separate field. Within about a minute of the charger rebooting, the station
+        shows as online in <strong>Charging Stations</strong>.
+      </p>
+
+      <h3 className="font-semibold text-base pt-2">Step 6 — Pricing, commission and GST</h3>
+      <p className="text-sm text-muted-foreground">
+        Go to <strong>Operators</strong>, find the owner, click <strong>Edit</strong>. Check these
+        before the first driver charges — each bill is frozen when the session ends.
+      </p>
+      <Shot src="05-owner-edit.png" alt="Edit Operator form" />
+      <Table
+        headers={['Field', 'What it does', 'Typical value']}
+        rows={[
+          ['Billing Rate (₹/kWh)', "Price drivers pay at all this owner's stations. A change applies from then on; old rates are kept.", 'As agreed, e.g. 23'],
+          ['Min Balance to Start (₹)', "A driver with less in their wallet can't start.", '50'],
+          ['Cutoff During Charging (₹)', "The session stops when the driver's balance falls to this.", '10'],
+          ['Commission Override (%)', "Zappo's share, before GST. Blank = platform default (15%).", 'Blank'],
+          ['GST Registered + GSTIN', 'Adds GST to driver bills. Only after the owner confirms their own GST registration.', 'Off until confirmed'],
+        ]}
+      />
+
+      <h3 className="font-semibold text-base pt-2">Step 7 — Hand over and test charge</h3>
+      <Step n={1} title="Owner signs in to Zappo Hub">
+        <p>With the email and temporary password from Step 3; the station shows as online.</p>
+      </Step>
+      <Step n={2} title="Run one charge from the Zappo EV Charging app">
+        <p>
+          Check the station is at the right spot on the map, charge for a few minutes, stop. The
+          session should appear in <strong>Transactions</strong> at the agreed rate and in the
+          owner&apos;s earnings.
+        </p>
+      </Step>
+
+      <h3 className="font-semibold text-base pt-2">Optional — RFID cards</h3>
+      <p className="text-sm text-muted-foreground">
+        Use <strong>RFID Cards</strong> in the sidebar, never the Authorizations page (a card added
+        there works everywhere and is never billed). Enter the card number without colons
+        (<Code>33:33:52:07</Code> → <Code>33335207</Code>), then the paying driver claims it with
+        their phone OTP. The charger refuses the card until it is claimed.
+      </p>
+    </div>
+  ),
+};
+
 const sections: Section[] = [
   {
     id: 'overview',
@@ -125,7 +297,7 @@ const sections: Section[] = [
           headers={['Component', 'URL / Port', 'Purpose']}
           rows={[
             ['Operator UI (this app)', 'https://app.zappoevcharging.com', 'Admin dashboard for managing chargers, operators, sessions'],
-            ['OCPP Server (CitrineOS)', 'ws://65.0.157.6:8080', 'Chargers connect here via WebSocket (OCPP 1.6 / 2.x)'],
+            ['OCPP Server (CitrineOS)', 'ws://65.0.157.6:8081', 'Chargers connect here via WebSocket (OCPP 1.6 / 2.x)'],
             ['Zappo API', 'http://65.0.157.6:3001', 'NestJS REST API for billing, operators, drivers'],
             ['Hasura GraphQL', 'http://65.0.157.6:8090', 'GraphQL layer over the PostgreSQL DB (accessed via /hasura/ proxy)'],
             ['PostgreSQL DB', 'Port 5432', 'Shared database for CitrineOS and Zappo API'],
@@ -138,12 +310,13 @@ const sections: Section[] = [
           rows={[
             ['Super Admin', 'Operator UI (this app)', 'See all stations, all transactions, manage operators and chargers'],
             ['Operator / Station Owner', 'Station Owner App', 'Manage their assigned stations, see their revenue'],
-            ['Driver', 'Driver App (planned)', 'Find chargers, start/stop sessions, pay via wallet'],
+            ['Driver', 'Zappo EV Charging app', 'Find chargers, start/stop sessions, pay via wallet'],
           ]}
         />
       </div>
     ),
   },
+  ownerOnboarding,
   {
     id: 'charger-setup',
     icon: <Zap className="size-4" />,
@@ -151,25 +324,24 @@ const sections: Section[] = [
     content: (
       <div className="space-y-4">
         <p className="text-muted-foreground">
-          Chargers connect to Zappo CSMS via OCPP WebSocket. Currently EVerest (simulator) is
-          connected as OCPP 2.1. Physical chargers can use OCPP 1.6 or 2.x.
+          Chargers connect to Zappo CSMS via OCPP WebSocket, using OCPP 1.6J or 2.x — the version
+          is negotiated automatically when the charger connects. For the full new-owner flow, see{' '}
+          <strong>Station Owner Onboarding</strong>.
         </p>
 
         <h3 className="font-semibold text-base">OCPP Connection Details</h3>
         <Table
           headers={['Setting', 'Value']}
           rows={[
-            ['OCPP 1.6 WebSocket URL', 'ws://65.0.157.6:8080/1.6/<charger-id>'],
-            ['OCPP 2.0.1 WebSocket URL', 'ws://65.0.157.6:8080/2.0.1/<charger-id>'],
-            ['OCPP 2.1 WebSocket URL', 'ws://65.0.157.6:8080/2.1/<charger-id>'],
-            ['<charger-id>', 'The unique station identifier (e.g. cp001, cp002). Must match the ocppConnectionName in the DB.'],
+            ['OCPP WebSocket URL', 'ws://65.0.157.6:8081/<charger-id>'],
+            ['<charger-id>', 'The unique station identifier (e.g. L2001983). Must match the station Name (ocppConnectionName) exactly.'],
           ]}
         />
 
         <Note type="warn">
-          The OCPP port (8080) is HTTP only — it is used for WebSocket upgrade. Chargers connect
-          directly to the server IP, not through the HTTPS domain. Only the Operator UI is behind
-          HTTPS/nginx.
+          Port 8081 is plain <Code>ws://</Code> (no TLS, no password). Chargers connect directly to
+          the server IP, not through the HTTPS domain. Port 8080 is CitrineOS&apos;s internal REST
+          API and does not accept chargers.
         </Note>
 
         <h3 className="font-semibold text-base">Steps to Add a New Physical Charger</h3>
@@ -184,8 +356,8 @@ const sections: Section[] = [
           <p>
             On the physical charger's configuration panel, set the CSMS URL to:
           </p>
-          <Pre>{'ws://65.0.157.6:8080/2.0.1/cp002'}</Pre>
-          <p>Replace <Code>2.0.1</Code> with the charger's OCPP version and <Code>cp002</Code> with your charger ID.</p>
+          <Pre>{'ws://65.0.157.6:8081/cp002'}</Pre>
+          <p>Replace <Code>cp002</Code> with your charger ID.</p>
         </Step>
         <Step n={3} title="Verify connection">
           <p>
@@ -569,6 +741,12 @@ docker ps | grep citrine-1`}</Pre>
 
 export const HelpPage = () => {
   const [activeId, setActiveId] = useState('overview');
+
+  // Deep link: /help#owner-onboarding opens that section directly.
+  useEffect(() => {
+    const id = window.location.hash.slice(1);
+    if (sections.some((s) => s.id === id)) setActiveId(id);
+  }, []);
 
   const activeSection = sections.find((s) => s.id === activeId)!;
 
