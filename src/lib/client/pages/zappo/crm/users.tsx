@@ -61,6 +61,15 @@ export const CrmUsersPage = () => {
     name: '', email: '', newPassword: '', role: 'admin', avatarColor: '#00C896', isActive: true,
   });
 
+  // Every write reports its real outcome. Before this, saveUser closed the edit form whether or not the
+  // PATCH succeeded, so a rejected password change looked identical to a saved one.
+  const [notice, setNotice] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
+  const failNotice = async (res: Response, what: string) => {
+    const d = await res.json().catch(() => ({} as any));
+    const reason = Array.isArray(d?.message) ? d.message.join(', ') : d?.message ?? `HTTP ${res.status}`;
+    setNotice({ kind: 'err', text: `${what} not saved — ${reason}${res.status === 401 || res.status === 403 ? ' (try signing out and back in)' : ''}` });
+  };
+
   const load = () => {
     setLoading(true);
     fetch('/api/zappo/users')
@@ -81,7 +90,11 @@ export const CrmUsersPage = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form),
       });
-      if (res.ok) { setShowNew(false); setForm(BLANK); load(); }
+      if (!res.ok) { await failNotice(res, 'New user'); return; }
+      setNotice({ kind: 'ok', text: `User ${form.email} created.` });
+      setShowNew(false); setForm(BLANK); load();
+    } catch {
+      setNotice({ kind: 'err', text: 'New user not saved — network error.' });
     } finally { setSaving(false); }
   };
 
@@ -93,28 +106,36 @@ export const CrmUsersPage = () => {
         role: editForm.role, avatarColor: editForm.avatarColor, isActive: editForm.isActive,
       };
       if (editForm.newPassword) payload.password = editForm.newPassword;
-      await fetch(`/api/zappo/users/${id}`, {
+      const res = await fetch(`/api/zappo/users/${id}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
+      if (!res.ok) { await failNotice(res, 'Changes'); return; }
+      setNotice({ kind: 'ok', text: payload.password ? `Saved. The new password for ${editForm.email} is active now.` : 'Saved.' });
       setEditing(null);
       load();
+    } catch {
+      setNotice({ kind: 'err', text: 'Changes not saved — network error.' });
     } finally { setSaving(false); }
   };
 
   const toggleActive = async (user: CrmUser) => {
-    await fetch(`/api/zappo/users/${user.id}`, {
+    const res = await fetch(`/api/zappo/users/${user.id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ isActive: !user.isActive }),
     });
+    if (!res.ok) { await failNotice(res, 'Status change'); return; }
+    setNotice({ kind: 'ok', text: `${user.name} ${user.isActive ? 'deactivated' : 'activated'}.` });
     load();
   };
 
   const deleteUser = async (id: number) => {
     if (!confirm('Delete this user? They will lose access immediately.')) return;
-    await fetch(`/api/zappo/users/${id}`, { method: 'DELETE' });
+    const res = await fetch(`/api/zappo/users/${id}`, { method: 'DELETE' });
+    if (!res.ok) { await failNotice(res, 'Delete'); return; }
+    setNotice({ kind: 'ok', text: 'User deleted.' });
     load();
   };
 
@@ -136,6 +157,14 @@ export const CrmUsersPage = () => {
           <Plus className="size-4 mr-2" /> Add User
         </Button>
       </div>
+
+      {notice && (
+        <div role="status"
+          className={`rounded-md border px-4 py-2 text-sm flex items-center justify-between gap-3 ${notice.kind === 'ok' ? 'border-green-500/40 bg-green-500/10 text-green-600' : 'border-red-500/40 bg-red-500/10 text-red-600'}`}>
+          <span>{notice.text}</span>
+          <button type="button" className="text-xs opacity-70 hover:opacity-100" onClick={() => setNotice(null)}>Dismiss</button>
+        </div>
+      )}
 
       {/* new user form */}
       {showNew && (
